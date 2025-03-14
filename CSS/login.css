@@ -49,6 +49,7 @@ body {
     font-family: Raleway;
     font-size: 32px;
     font-weight: 700;
+    text-align: center;
 }
 
 .login_cta {
@@ -163,3 +164,4 @@ line-height: normal;
     background: transparent;
     padding: 5px 10px;
 }
+
