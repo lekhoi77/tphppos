@@ -40,7 +40,7 @@ body {
 .baker {
     color: #FFF;
     text-align: center;
-    font-size: 32px;
+    font-size: 24px;
     font-weight: 700;
 }
 
@@ -66,10 +66,13 @@ body {
     flex-direction: column;
     align-items: flex-start;
     gap: 13px;
+    border-radius: 20px;
+    padding: 15px 21px 15px 29px;
+background: linear-gradient(115deg, rgba(183, 69, 70, 0.80) -6.51%, rgba(226, 121, 63, 0.58) 34.82%, rgba(250, 215, 131, 0.80) 96.21%);
 }
 
 .acc {
-
+ 
     display: flex;
     height: 44px;
     padding: 10px 30px;
