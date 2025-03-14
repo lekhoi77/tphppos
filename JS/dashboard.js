@@ -15,6 +15,55 @@ const notificationMessage = document.getElementById('notification-message');
 const notificationYes = document.getElementById('notification-yes');
 const notificationNo = document.getElementById('notification-no');
 
+// Money formatting functions
+function formatToVND(number) {
+    if (!number) return '';
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+function parseVNDToNumber(vndString) {
+    if (!vndString) return 0;
+    return Number(vndString.replace(/\./g, '')) || 0;
+}
+
+// Function to handle money input
+function handleMoneyInput(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value) {
+        const numberValue = Number(value);
+        if (numberValue > 20000000) {
+            value = '20000000';
+        }
+        e.target.value = formatToVND(value);
+    } else {
+        e.target.value = '';
+    }
+}
+
+// Function to handle money keydown
+function handleMoneyKeydown(e) {
+    // Allow only: numbers, backspace, delete, left arrow, right arrow, tab
+    if (!((e.keyCode > 47 && e.keyCode < 58) || // numbers
+          (e.keyCode > 95 && e.keyCode < 106) || // numpad
+          e.keyCode === 8 || // backspace
+          e.keyCode === 46 || // delete
+          e.keyCode === 37 || // left arrow
+          e.keyCode === 39 || // right arrow
+          e.keyCode === 9)) { // tab
+        e.preventDefault();
+    }
+}
+
+// Add event listeners for money input fields
+const orderPriceInput = document.getElementById('orderPrice');
+const depositInput = document.getElementById('deposit');
+
+orderPriceInput.addEventListener('keydown', handleMoneyKeydown);
+orderPriceInput.addEventListener('input', handleMoneyInput);
+
+depositInput.addEventListener('keydown', handleMoneyKeydown);
+depositInput.addEventListener('input', handleMoneyInput);
+
 // Show modal when add order button is clicked
 addOrderBtn.addEventListener('click', () => {
     editingOrderId = null; // Reset editing state
@@ -48,20 +97,19 @@ window.addEventListener('click', (e) => {
     }
 });
 
+// Function to get the next available ID
+function getNextId() {
+    if (orders.length === 0) return 1;
+    const maxId = Math.max(...orders.map(order => order.id));
+    return maxId + 1;
+}
+
 // Handle notification buttons
 notificationYes.addEventListener('click', () => {
     if (orderToDelete !== null) {
         try {
-            // Remove the order
+            // Remove the order without reordering IDs
             orders = orders.filter(order => order.id !== orderToDelete);
-            
-            // Reorder remaining orders
-            orders = orders.map((order, index) => {
-                return {
-                    ...order,
-                    id: index + 1
-                };
-            });
             
             // Save to localStorage
             localStorage.setItem('orders', JSON.stringify(orders));
@@ -99,11 +147,21 @@ orderForm.addEventListener('submit', (e) => {
     const customerName = document.getElementById('customerName').value;
     const orderSource = document.getElementById('orderSource').value;
     const orderNotes = document.getElementById('orderNotes').value;
-    const orderPrice = document.getElementById('orderPrice').value;
-    const deposit = document.getElementById('deposit').value;
+    const orderPrice = parseVNDToNumber(document.getElementById('orderPrice').value);
+    const deposit = parseVNDToNumber(document.getElementById('deposit').value);
     const orderStatus = document.getElementById('orderStatus').value;
     const deliveryAddress = document.getElementById('deliveryAddress').value;
     const deliveryTime = document.getElementById('deliveryTime').value;
+
+    // Validate money values
+    if (orderPrice > 20000000) {
+        alert('Giá tiền không được vượt quá 20.000.000 VND');
+        return;
+    }
+    if (deposit > 20000000) {
+        alert('Tiền cọc không được vượt quá 20.000.000 VND');
+        return;
+    }
 
     if (editingOrderId !== null) {
         // Update existing order
@@ -123,9 +181,9 @@ orderForm.addEventListener('submit', (e) => {
             };
         }
     } else {
-        // Create new order with sequential ID
+        // Create new order with unique ID
         const newOrder = {
-            id: orders.length + 1,
+            id: getNextId(),
             cakeType,
             customerName,
             orderSource,
@@ -162,8 +220,8 @@ function editOrder(orderId) {
         document.getElementById('customerName').value = order.customerName;
         document.getElementById('orderSource').value = order.orderSource;
         document.getElementById('orderNotes').value = order.orderNotes;
-        document.getElementById('orderPrice').value = order.orderPrice;
-        document.getElementById('deposit').value = order.deposit;
+        document.getElementById('orderPrice').value = formatToVND(order.orderPrice);
+        document.getElementById('deposit').value = formatToVND(order.deposit);
         document.getElementById('orderStatus').value = order.orderStatus;
         document.getElementById('deliveryAddress').value = order.deliveryAddress;
         document.getElementById('deliveryTime').value = order.deliveryTime;
@@ -187,14 +245,14 @@ function displayOrders() {
     orders.forEach(order => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${order.id}</td>
+            <td>#${order.id}</td>
             <td>${order.cakeType}</td>
             <td>${order.customerName}</td>
             <td>${order.orderNotes}</td>
             <td>${order.orderSource}</td>
             <td>${order.date}</td>
-            <td>${order.orderPrice}</td>
-            <td>${order.deposit}</td>
+            <td>${formatToVND(order.orderPrice)}</td>
+            <td>${formatToVND(order.deposit)}</td>
             <td>${order.orderStatus}</td>
             <td>${order.deliveryAddress}</td>
             <td>

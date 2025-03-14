@@ -1,5 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&display=swap');
+
+* {
+    font-family: 'Raleway', sans-serif;
+}
+
 body {
-    font-family: Raleway, sans-serif;
     background-color: #f4a261;
     margin: 0;
     padding: 0;
@@ -16,7 +21,7 @@ body {
 
 .baker {
     font-size: 20px;
-    font-weight: bold;
+    font-weight: 700;
     margin-bottom: 20px;
     color: white;
     text-align: center;
@@ -24,6 +29,7 @@ body {
 
 .diachi {
     font-size: 16px;
+    font-weight: 400;
     color: white;
     text-align: center;
 }
@@ -31,14 +37,14 @@ body {
 .container {
     padding: 20px;
     border-radius: 10px;
-    width: 90%;
-    max-width: 1000px;
+    width: 98%;
+    max-width: 1800px;
     margin: auto;
 }
 
 .dashboard_title {
     font-size: 24px;
-    font-weight: bold;
+    font-weight: 700;
     text-align: center;
     margin-bottom: 20px;
     color: white;
@@ -53,32 +59,127 @@ table {
     margin-top: 20px;
     border-radius: 10px;
     overflow: hidden;
+    table-layout: fixed;
 }
 
 th, td {
-    border-top: 1px solid #ffffff;
     border-bottom: 1px solid #ddd;
-    padding: 20px;
+    padding: 15px 10px;
     text-align: center;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Column widths */
+table th:nth-child(1),
+table td:nth-child(1) { /* ID */
+    width: 4%;
+}
+
+table th:nth-child(2),
+table td:nth-child(2) { /* Cake Type */
+    width: 8%;
+}
+
+table th:nth-child(3),
+table td:nth-child(3) { /* Name */
+    width: 10%;
+}
+
+table th:nth-child(4),
+table td:nth-child(4) { /* Notes */
+    width: 15%;
+}
+
+table th:nth-child(5),
+table td:nth-child(5) { /* Source */
+    width: 8%;
+}
+
+table th:nth-child(6),
+table td:nth-child(6) { /* Date */
+    width: 8%;
+}
+
+table th:nth-child(7),
+table td:nth-child(7) { /* Price */
+    width: 10%;
+}
+
+table th:nth-child(8),
+table td:nth-child(8) { /* Deposit */
+    width: 10%;
+}
+
+table th:nth-child(9),
+table td:nth-child(9) { /* Status */
+    width: 8%;
+}
+
+table th:nth-child(10),
+table td:nth-child(10) { /* Delivery */
+    width: 11%;
+}
+
+table th:nth-child(11),
+table td:nth-child(11) { /* Action */
+    width: 8%;
 }
 
 th {
     background-color: #aaaaaa;
     color: rgb(36, 34, 34);
+    font-weight: 600;
 }
 
 /* Button Styles */
+button {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 500;
+}
+
+.add-order-container {
+    display: flex;
+    justify-content: flex-start;
+    margin: 20px 0;
+}
+
 button.add-order {
-    background: green;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #2ecc71;
     color: white;
-    padding: 10px;
+    padding: 10px 20px;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
-    width: 100%;
-    max-width: 200px;
-    margin: 0 auto;
-    display: block;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+button.add-order:hover {
+    background: #27ae60;
+    transform: translateY(-2px);
+}
+
+button.add-order .plus-icon {
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+}
+
+button.add-order span {
+    font-size: 14px;
+    letter-spacing: 0.5px;
 }
 
 .edit-btn, .delete-btn {
@@ -90,6 +191,7 @@ button.add-order {
     transition: all 0.3s ease;
     min-width: 60px;
     margin: 5px;
+    font-weight: 500;
 }
 
 .edit-btn {
@@ -134,6 +236,11 @@ button.add-order {
     overflow-y: auto;
 }
 
+.modal-content h2 {
+    font-weight: 700;
+    color: #333;
+}
+
 .close {
     float: right;
     cursor: pointer;
@@ -148,7 +255,8 @@ form {
 }
 
 form label {
-    font-weight: bold;
+    font-weight: 600;
+    color: #333;
 }
 
 form input, form select, form textarea {
@@ -157,6 +265,8 @@ form input, form select, form textarea {
     border-radius: 5px;
     width: 100%;
     box-sizing: border-box;
+    font-family: 'Raleway', sans-serif;
+    font-size: 14px;
 }
 
 form textarea {
@@ -170,6 +280,7 @@ form button {
     border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
+    font-weight: 600;
 }
 
 form button[type="submit"] {
@@ -208,6 +319,7 @@ form button.cancel {
 .notification-content p {
     margin-bottom: 20px;
     font-size: 16px;
+    font-weight: 500;
 }
 
 .notification-buttons {
@@ -224,6 +336,7 @@ form button.cancel {
     font-size: 14px;
     transition: all 0.3s ease;
     min-width: 80px;
+    font-weight: 600;
 }
 
 .notification-btn.yes {
@@ -247,7 +360,7 @@ form button.cancel {
 /* Responsive Styles */
 @media screen and (max-width: 768px) {
     .container {
-        width: 95%;
+        width: 100%;
         padding: 10px;
     }
 

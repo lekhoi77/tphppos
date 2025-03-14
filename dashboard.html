@@ -16,7 +16,12 @@
     
         <main>
             <div class="dashboard_title">DANH SÁCH ĐƠN HÀNG</div>
-            <button id="addOrderBtn" class="add-order">+ Thêm đơn hàng</button>
+            <div class="add-order-container">
+                <button id="addOrderBtn" class="add-order">
+                    <div class="plus-icon">+</div>
+                    <span>THÊM ĐƠN HÀNG</span>
+                </button>
+            </div>
             <table>
                 <thead>
                     <tr>
@@ -62,9 +67,9 @@
                 <label>Nội dung</label>
                 <textarea id="orderNotes"></textarea>
                 <label>Tiền</label>
-                <input type="number" id="orderPrice">
+                <input type="text" id="orderPrice" inputmode="numeric" placeholder="0" maxlength="10">
                 <label>Cọc</label>
-                <input type="number" id="deposit">
+                <input type="text" id="deposit" inputmode="numeric" placeholder="0" maxlength="10">
                 <label>Trạng thái</label>
                 <select id="orderStatus">
                     <option>Đã đặt</option>
