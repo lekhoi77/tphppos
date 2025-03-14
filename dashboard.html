@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Đơn Hàng</title>
+    <link rel="stylesheet" href="./CSS/dashboard.css">
+    <script defer src="./JS/dashboard.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="info">
+            <div class="baker">Tiệm Bánh Hạnh Phúc</div>
+        <div class="diachi">2915 Quang Trung - Hoài Đức - Hoài Nhơn</div>
+    </div>
+    
+        <main>
+            <div class="dashboard_title">DANH SÁCH ĐƠN HÀNG</div>
+            <button id="addOrderBtn" class="add-order">+ Thêm đơn hàng</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Loại bánh</th>
+                        <th>Tên</th>
+                        <th>Nội dung</th>
+                        <th>Nguồn</th>
+                        <th>Ngày</th>
+                        <th>Tiền</th>
+                        <th>Cọc</th>
+                        <th>Trạng thái</th>
+                        <th>Giao</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="orderTableBody">
+                    <!-- Dữ liệu sẽ được thêm động -->
+                </tbody>
+            </table>
+        </main>
+    </div>
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>+ THÊM ĐƠN HÀNG</h2>
+            <form id="orderForm">
+                <label>Loại bánh</label>
+                <select id="cakeType">
+                    <option>Bánh kem</option>
+                    <option>Bánh cưới</option>
+                    <option>Bánh sinh nhật</option>
+                </select>
+                <label>Tên</label>
+                <input type="text" id="customerName">
+                <label>Nguồn</label>
+                <select id="orderSource">
+                    <option>Facebook</option>
+                    <option>Zalo</option>
+                    <option>Hỏa Tốc 247</option>
+                    <option>Trực tiếp</option>
+                </select>
+                <label>Nội dung</label>
+                <textarea id="orderNotes"></textarea>
+                <label>Tiền</label>
+                <input type="number" id="orderPrice">
+                <label>Cọc</label>
+                <input type="number" id="deposit">
+                <label>Trạng thái</label>
+                <select id="orderStatus">
+                    <option>Đã đặt</option>
+                    <option>Đã giao</option>
+                    <option>Hủy</option>
+                </select>
+                <label>Địa chỉ giao</label>
+                <input type="text" id="deliveryAddress">
+                <label>Thời gian giao</label>
+                <input type="datetime-local" id="deliveryTime">
+                <button type="submit">Thêm</button>
+                <button type="button" class="cancel">Hủy</button>
+            </form>
+        </div>
+    </div>
+    <div id="notification" class="notification">
+        <div class="notification-content">
+            <p id="notification-message"></p>
+            <div class="notification-buttons">
+                <button id="notification-yes" class="notification-btn yes">Có</button>
+                <button id="notification-no" class="notification-btn no">Không</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

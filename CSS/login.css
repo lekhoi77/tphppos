@@ -4,27 +4,32 @@
 body {
     font-family: 'Raleway', sans-serif;
     background: linear-gradient(100deg, rgba(183, 69, 70, 0.80) 11.38%, rgba(226, 121, 63, 0.80) 47.19%, rgba(250, 215, 131, 0.80) 83%), #FFF;
-    background-size: 200% 200%; /* Mở rộng kích thước gradient */
-    animation: gradientMove 4s infinite linear alternate; /* Áp dụng animation */
+    background-size: 200% 200%;
+    /* Mở rộng kích thước gradient */
+    animation: gradientMove 4s infinite linear alternate;
+    /* Áp dụng animation */
     display: flex;
     padding: 152px 0px;
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
 }
+
 /* Hiệu ứng gradientmove */
 @keyframes gradientMove {
     0% {
         background-position: 0% 0%;
     }
-    50%
-    {
+
+    50% {
         background-position: 50% 50%;
     }
+
     100% {
         background-position: 100% 100%;
     }
 }
+
 /* n/ Hiệu ứng gradientmove */
 
 .login_section {
@@ -68,11 +73,11 @@ body {
     gap: 13px;
     border-radius: 20px;
     padding: 15px 21px 15px 29px;
-background: linear-gradient(115deg, rgba(183, 69, 70, 0.80) -6.51%, rgba(226, 121, 63, 0.58) 34.82%, rgba(250, 215, 131, 0.80) 96.21%);
+    background: linear-gradient(115deg, rgba(183, 69, 70, 0.80) -6.51%, rgba(226, 121, 63, 0.58) 34.82%, rgba(250, 215, 131, 0.80) 96.21%);
 }
 
 .acc {
- 
+
     display: flex;
     height: 44px;
     padding: 10px 30px;
@@ -106,62 +111,71 @@ background: linear-gradient(115deg, rgba(183, 69, 70, 0.80) -6.51%, rgba(226, 12
     text-align: center;
 }
 
-.login_btn{
+.login_btn {
     display: flex;
-width: 131px;
-padding: 10px;
-justify-content: center;
-align-items: center;
-gap: 10px;
-border-radius: 10px;
-background: #F65B52;
-transition: background 0.3s ease, transform 0.2s ease;
+    width: 131px;
+    padding: 10px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    border-radius: 10px;
+    background: #F65B52;
+    transition: background 0.3s ease, transform 0.2s ease;
 }
-.login_btn_title{
-color: #FFF;
-font-family: Raleway;
-font-size: 16px;
-font-weight: 700;
+
+.login_btn_title {
+    color: #FFF;
+    font-family: Raleway;
+    font-size: 16px;
+    font-weight: 700;
 }
+
 /* Hiệu ứng hover cho Login btn */
 .login_btn:hover .login_btn_title {
-    color: red; 
+    color: red;
 }
+
 .login_btn:hover {
-border-radius: 10px;
-border: 1px solid #F65B52;
-background: #FFF;
-color: #F65B52;
+    border-radius: 10px;
+    border: 1px solid #F65B52;
+    background: #FFF;
+    color: #F65B52;
 }
+
 .login_btn:active {
-    transform: scale(0.95); /* Hiệu ứng nhấn */
+    transform: scale(0.95);
+    /* Hiệu ứng nhấn */
 }
+
 /*n/ Hiệu ứng hover cho Login btn */
 
-.tag{
+.tag {
     display: flex;
-padding: 66px 10px;
-justify-content: center;
-align-items: flex-end;
-gap: 10px;
+    padding: 66px 10px;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 10px;
 }
 
-.design_by{
+.design_by {
     color: #FFF;
-text-align: center;
+    text-align: center;
 
-/* Tablet/Caption */
-font-family: Raleway;
-font-size: 14px;
-font-style: normal;
-font-weight: 400;
-line-height: normal;
+    /* Tablet/Caption */
+    font-family: Raleway;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
 }
+
 .input_field {
-    
+
     width: 100%;
-    border: none; /* Xóa đường viền */
-    outline: none; /* Xóa viền khi focus */
+    border: none;
+    /* Xóa đường viền */
+    outline: none;
+    /* Xóa viền khi focus */
     font-size: 16px;
     color: #333;
     background: transparent;
