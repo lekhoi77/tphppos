@@ -1,3 +1,4 @@
+/* Font Raleway */
 @import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
 
 body {
@@ -11,7 +12,7 @@ body {
     justify-content: space-between;
     align-items: center;
 }
-
+/* Hiệu ứng gradientmove */
 @keyframes gradientMove {
     0% {
         background-position: 0% 0%;
@@ -24,7 +25,7 @@ body {
         background-position: 100% 100%;
     }
 }
-
+/* n/ Hiệu ứng gradientmove */
 
 .login_section {
     display: flex;
@@ -118,9 +119,9 @@ font-family: Raleway;
 font-size: 16px;
 font-weight: 700;
 }
-
+/* Hiệu ứng hover cho Login btn */
 .login_btn:hover .login_btn_title {
-    color: red; /* Chữ đổi thành màu đỏ khi hover */
+    color: red; 
 }
 .login_btn:hover {
 border-radius: 10px;
@@ -131,6 +132,7 @@ color: #F65B52;
 .login_btn:active {
     transform: scale(0.95); /* Hiệu ứng nhấn */
 }
+/*n/ Hiệu ứng hover cho Login btn */
 
 .tag{
     display: flex;
