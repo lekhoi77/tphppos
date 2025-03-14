@@ -165,3 +165,9 @@ line-height: normal;
     padding: 5px 10px;
 }
 
+@media screen and (max-width: 768px) {
+    .login_section {
+        position: relative;
+        top: -150px;
+    }
+}
