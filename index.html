@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiệm Bánh Hạnh Phúc - Cầu Dợi</title>
+    <link rel="stylesheet" href="./CSS/login.css">
+
+</head>
+<body>
+    
+        <div class="login_container">
+          <div class="login_section">
+            <img class="logo_tron" src="./Image/logo_tron.svg" />
+            <div class="baker"><span class="baker_span">TIỆM BÁNH HẠNH PHÚC (CẦU DỢI)</span></div>
+            <div class="system"><span class="system_span">HỆ THỐNG HỖ TRỢ NHẬN ĐƠN HÀNG </span></div>
+            <div class="login_cta"><span class="login_cta_span">Đăng nhập tài khoản</span></div>
+            <div class="input_form">
+                <div class="acc">
+                    <input type="text" id="username" class="input_field" placeholder="Tài khoản">
+                </div>
+                <div class="pass">
+                    <input type="password" id="password" class="input_field" placeholder="Mật khẩu">
+                </div>
+            </div>
+            <div data-property-1="login_btn_red" class="login_btn" onclick="validateLogin()">
+              <div><span class="login_btn_title">Đăng nhập </span></div>
+            </div>
+            <p id="error_message" style="color: red; display: none;">Tài khoản hoặc mật khẩu sai!</p>
+
+            <div class="tag">
+              <div class="design_by">thiết kế bởi @lefactuer</div>
+            </div>
+          </div>
+        </div>
+        <script>
+            function validateLogin() {
+                // Danh sách tài khoản hợp lệ (có thể thay bằng dữ liệu từ database)
+                const validUser = "lekhoi";
+                const validPass = "28022004";
+        
+                // Lấy giá trị nhập vào
+                let username = document.getElementById("username").value.trim();
+                let password = document.getElementById("password").value.trim();
+                let errorMessage = document.getElementById("error_message");
+        
+                // Kiểm tra tài khoản và mật khẩu
+                if (username === validUser && password === validPass) {
+                    window.location.href = "lekhoi.html"; // Chuyển hướng nếu đúng
+                } else {
+                    errorMessage.style.display = "block"; // Hiển thị thông báo lỗi
+                    errorMessage.innerText = "Tài khoản hoặc mật khẩu sai!"; // Đảm bảo nội dung hiển thị
+                }
+            }
+
+            // Bắt sự kiện nhấn Enter trên ô nhập mật khẩu
+    document.getElementById("password").addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+            validateLogin();
+        }
+    });
+        </script>
+</body>
+
+
+
+</html>
