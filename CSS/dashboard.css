@@ -6,14 +6,12 @@
 
 /* Noise effect - giảm độ phức tạp */
 
-@keyframes noise {
-    0% { background-position: 0 0; }
-    100% { background-position: 100% 100%; }
-}
+
 
 body {
-    position: relative;
     background: linear-gradient(100deg, rgba(183, 69, 70, 0.80) 11.38%, rgba(226, 121, 63, 0.80) 47.19%, rgba(250, 215, 131, 0.80) 83%), #FFF;
+    position: relative;
+    
     margin: 0;
     padding: 0;
     min-height: 100vh;
@@ -91,7 +89,8 @@ main::before {
 
 /* Table Styles */
 table {
-    background: white;
+    position: relative;
+    z-index: 5;
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
@@ -99,7 +98,7 @@ table {
     border-radius: 10px;
     overflow: hidden;
     table-layout: fixed;
-   
+    background: transparent;
 }
 
 th, td {
@@ -190,6 +189,9 @@ button {
     display: flex;
     justify-content: flex-start;
     margin: 20px 0;
+    position: sticky;
+    top: 20px;
+    z-index: 10;
 }
 
 button.add-order {
@@ -204,6 +206,7 @@ button.add-order {
     cursor: pointer;
     font-weight: 600;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 button.add-order:hover {
@@ -268,20 +271,25 @@ button.add-order span {
     height: 100%;
     background: rgba(0,0,0,0.5);
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     z-index: 1000;
+    overflow-y: auto;
 }
 
 .modal-content {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    width: 80%;
-    max-width: 400px;
-    max-height: 85vh;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 25px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    max-height: calc(100vh - 40px);
     overflow-y: auto;
-    transform: translateZ(0); /* Kích hoạt GPU acceleration */
-    will-change: transform; /* Tối ưu render */
+    transform: translateZ(0);
+    will-change: transform;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    margin: 20px auto;
 }
 
 .popup-title {
@@ -493,174 +501,7 @@ form button.cancel {
     background-color: #da190b;
 }
 
-/* Responsive Styles - Cải thiện */
-@media screen and (max-width: 768px) {
-    .container {
-        width: 100%;
-        padding: 10px 5px;
-    }
 
-    /* Thay đổi cách hiển thị bảng trên mobile */
-    table, thead, tbody, th, td, tr {
-        display: block;
-    }
-    
-    /* Ẩn header của bảng */
-    thead tr {
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-    }
-    
-    /* Hiển thị mỗi dòng như một "card" */
-    tr {
-        margin-bottom: 15px;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        position: relative;
-    }
-    
-    /* Hiển thị mỗi ô với label */
-    td {
-        position: relative;
-        padding: 8px 8px 8px 40%;
-        text-align: left;
-        min-height: 30px;
-        border-bottom: 1px solid #f1f1f1;
-    }
-    
-    /* Thêm label cho mỗi ô */
-    td:before {
-        position: absolute;
-        top: 8px;
-        left: 8px;
-        width: 35%;
-        padding-right: 10px;
-        white-space: nowrap;
-        font-weight: 600;
-        color: #333;
-    }
-    
-    /* Định nghĩa label cho từng cột */
-    td:nth-of-type(1):before { content: "ID"; }
-    td:nth-of-type(2):before { content: "Loại bánh"; }
-    td:nth-of-type(3):before { content: "Tên"; }
-    td:nth-of-type(4):before { content: "Kênh"; }
-    td:nth-of-type(5):before { content: "Tiền"; }
-    td:nth-of-type(6):before { content: "Cọc"; }
-    td:nth-of-type(7):before { content: "Trạng thái"; }
-    td:nth-of-type(8):before { content: "Giao"; }
-    td:nth-of-type(9):before { content: "Thao tác"; }
-    
-    /* Hiển thị nút thao tác */
-    td:last-child {
-        text-align: center;
-        padding: 10px;
-        border-bottom: none;
-    }
-    
-    /* Ẩn border cho dòng cuối */
-    .order-row-border {
-        border-bottom: none;
-    }
-    
-    /* Điều chỉnh nút thao tác */
-    .edit-btn, .delete-btn {
-        margin: 5px;
-        min-width: 80px;
-        padding: 8px 15px;
-    }
-    
-    /* Ẩn hiệu ứng noise */
-    body::before {
-        display: none;
-    }
-    
-    /* Đơn giản hóa background */
-    body {
-        background: #8B0000;
-    }
-    
-    /* Điều chỉnh modal */
-    .modal-content {
-        width: 95%;
-        max-width: 350px;
-        padding: 15px;
-    }
-    
-    /* Điều chỉnh notification */
-    .notification-content {
-        width: 95%;
-    }
-    
-    /* Điều chỉnh pagination */
-    .pagination {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-}
-
-@media screen and (max-width: 480px) {
-    /* Điều chỉnh typography */
-    .baker {
-        font-size: 18px;
-    }
-    
-    .diachi {
-        font-size: 14px;
-    }
-    
-    .dashboard_title {
-        font-size: 20px;
-        margin-bottom: 15px;
-    }
-    
-    /* Điều chỉnh padding cho td */
-    td {
-        padding: 8px 8px 8px 45%;
-        font-size: 13px;
-    }
-    
-    /* Điều chỉnh nút */
-    .edit-btn, .delete-btn {
-        padding: 6px 12px;
-        font-size: 13px;
-        min-width: 70px;
-    }
-    
-    /* Điều chỉnh form */
-    form input, form select, form textarea {
-        padding: 8px;
-        font-size: 14px;
-    }
-    
-    /* Điều chỉnh notification */
-    .notification-content {
-        padding: 15px;
-    }
-    
-    .notification-content p {
-        font-size: 14px;
-    }
-    
-    .notification-btn {
-        padding: 8px 15px;
-        font-size: 13px;
-        min-width: 70px;
-    }
-    
-    /* Điều chỉnh tiêu đề popup */
-    .popup-title {
-        font-size: 18px;
-    }
-    
-    /* Điều chỉnh nút thêm đơn hàng */
-    button.add-order {
-        width: 100%;
-        justify-content: center;
-    }
-}
 
 /* Status Colors */
 .status-pending {
@@ -768,146 +609,245 @@ form button.cancel {
     text-align: center;
     padding: 30px;
     font-size: 16px;
-    color: #666;
-    background: white;
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 8px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
-@media screen and (max-width: 480px) {
-    .pagination {
-        gap: 4px;
-        margin: 15px 0;
-    }
-
-    .pagination button {
-        padding: 4px 8px;
-        font-size: 12px;
-        min-width: 30px;
-    }
-    
-    .pagination-ellipsis {
-        margin: 0 2px;
-        font-size: 12px;
-    }
-    
-    /* Thêm margin cho các card */
-    tr {
-        margin-bottom: 10px;
-    }
-    
-    /* Tăng kích thước nút thêm đơn hàng */
-    button.add-order {
-        padding: 12px 20px;
-        margin-bottom: 15px;
-    }
-    
-    /* Điều chỉnh khoảng cách */
-    .add-order-container {
-        margin: 15px 0;
-    }
-}
-
-/* Tối ưu animation */
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-    }
-    
-    body::before {
-        animation: none !important;
-    }
-    
-    label > span.required {
-        animation: none !important;
-    }
-}
-
-/* Media query cho tablet landscape mode */
-@media screen and (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
-    .container {
-        width: 98%;
-        padding: 15px;
-    }
-    
-    /* Điều chỉnh bảng cho tablet landscape */
+/* Desktop Styles (≥ 1024px) */
+@media screen and (min-width: 1024px) {
     table {
-        font-size: 14px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+        border-bottom: 1px solid #eee;
+        padding: 15px 10px;
+    }
+
+    .order-row:hover {
+        background-color: #f8f8f8;
+    }
+
+    .info-group:hover {
+        background: #f0f0f0;
+    }
+}
+
+/* Tablet Styles (500px - 1023px) */
+@media screen and (min-width: 500px) and (max-width: 1023px) {
+    .container {
+        padding: 20px 15px;
     }
     
-    th, td {
+    tr {
+        margin-bottom: 25px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        padding: 20px;
+    }
+
+    .order-card-header {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .order-card-header .order-id {
+        font-size: 1.2em;
+        color: #333;
+        font-weight: 600;
+    }
+
+    .order-card-main {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .info-group {
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        background: #f8f8f8;
+        border-radius: 8px;
+    }
+
+    .info-label {
+        font-size: 0.85em;
+        color: #666;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+
+    .info-value {
+        font-size: 1em;
+        color: #333;
+        font-weight: 600;
+    }
+
+    .order-card-notes {
+        grid-column: 1 / -1;
+        padding: 15px;
+        margin: 10px 0;
+        background: #f8f8f8;
+        border-radius: 8px;
+    }
+
+    .order-card-footer {
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+    }
+
+    .modal {
+        padding-top: 0;
+    }
+
+    .modal-content {
+        margin: 10px auto;
+        padding: 20px;
+        border-radius: 12px;
+    }
+}
+
+/* Mobile Styles (< 500px) */
+@media screen and (max-width: 499px) {
+    .container {
         padding: 10px 5px;
     }
     
-    /* Điều chỉnh kích thước cột cho tablet landscape */
-    table th:nth-child(1),
-    table td:nth-child(1) { /* ID */
-        width: 5%;
+    tr {
+        margin-bottom: 15px;
+        background: #ffffff;
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    
-    table th:nth-child(2),
-    table td:nth-child(2) { /* Cake Type */
-        width: 10%;
+
+    .order-card-header {
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
-    
-    table th:nth-child(3),
-    table td:nth-child(3) { /* Name */
-        width: 10%;
+
+    .order-card-header .order-id {
+        font-size: 1.1em;
+        color: #333;
+        font-weight: 600;
     }
-    
-    table th:nth-child(4),
-    table td:nth-child(4) { /* Notes */
-        width: 15%;
+
+    .order-card-main {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
     }
-    
-    table th:nth-child(5),
-    table td:nth-child(5) { /* Source */
-        width: 8%;
+
+    .info-group {
+        display: flex;
+        flex-direction: column;
+        padding: 8px;
+        background: #f8f8f8;
+        border-radius: 6px;
     }
-    
-    table th:nth-child(6),
-    table td:nth-child(6),
-    table th:nth-child(7),
-    table td:nth-child(7) { /* Price & Deposit */
-        width: 8%;
+
+    .info-label {
+        font-size: 0.8em;
+        color: #666;
+        margin-bottom: 4px;
+        font-weight: 500;
     }
-    
-    table th:nth-child(8),
-    table td:nth-child(8) { /* Status */
-        width: 8%;
+
+    .info-value {
+        font-size: 0.95em;
+        color: #333;
+        font-weight: 600;
     }
-    
-    table th:nth-child(9),
-    table td:nth-child(9) { /* Address */
-        width: 12%;
+
+    .order-card-notes {
+        padding: 10px;
+        margin: 8px 0;
+        background: #f8f8f8;
+        border-radius: 6px;
     }
-    
-    table th:nth-child(10),
-    table td:nth-child(10) { /* Delivery Time */
-        width: 10%;
+
+    .order-card-footer {
+        margin-top: 15px;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
     }
-    
-    table th:nth-child(11),
-    table td:nth-child(11) { /* Action */
-        width: 14%;
+
+    .modal {
+        padding-top: 0;
     }
-    
-    /* Điều chỉnh nút */
-    .edit-btn, .delete-btn {
-        padding: 6px 12px;
-        min-width: 60px;
-        margin: 3px;
-    }
-    
-    /* Điều chỉnh modal */
+
     .modal-content {
-        max-width: 500px;
+        margin: 5px auto;
+        padding: 15px;
+        width: 95%;
+        border-radius: 8px;
     }
-    
-    /* Điều chỉnh pagination */
-    .pagination button {
-        min-width: 35px;
+
+    .popup-title {
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
+
+    form input, form select, form textarea {
+        padding: 8px;
+        font-size: 14px;
     }
 }
+
+/* Common styles for both tablet and mobile */
+@media screen and (max-width: 1023px) {
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+    
+    thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    td {
+        position: relative;
+        padding: 0;
+        text-align: left;
+        border-bottom: none;
+    }
+
+    .order-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .order-card-main {
+        display: grid;
+    }
+
+    .order-card-footer {
+        display: flex;
+        justify-content: flex-end;
+    }
+}
+

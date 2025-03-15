@@ -4,8 +4,18 @@ let editingOrderId = null;
 let orderToDelete = null;
 let currentPage = 1;
 const ordersPerPage = 10;
-let isMobile = window.innerWidth <= 768; // Kiểm tra nếu là mobile
-let isTabletLandscape = window.innerWidth > 768 && window.innerWidth <= 1024 && window.innerHeight < window.innerWidth; // Kiểm tra nếu là tablet landscape
+
+// Kiểm tra kích thước màn hình
+let screenSize = getScreenSize();
+
+// Hàm xác định kích thước màn hình
+function getScreenSize() {
+    const width = window.innerWidth;
+    if (width <= 480) return 'mobile-small';
+    if (width <= 768) return 'mobile';
+    if (width <= 1024) return 'tablet';
+    return 'desktop';
+}
 
 // Debounce function để tối ưu hiệu năng
 function debounce(func, wait) {
@@ -20,14 +30,9 @@ function debounce(func, wait) {
 
 // Theo dõi resize window với debounce
 window.addEventListener('resize', debounce(function() {
-    const wasMobile = isMobile;
-    const wasTabletLandscape = isTabletLandscape;
-    
-    isMobile = window.innerWidth <= 768;
-    isTabletLandscape = window.innerWidth > 768 && window.innerWidth <= 1024 && window.innerHeight < window.innerWidth;
-    
-    // Chỉ reload khi chuyển đổi giữa các mode
-    if (wasMobile !== isMobile || wasTabletLandscape !== isTabletLandscape) {
+    const newScreenSize = getScreenSize();
+    if (screenSize !== newScreenSize) {
+        screenSize = newScreenSize;
         displayOrders(orders);
     }
 }, 250));
@@ -156,7 +161,7 @@ function generateOrderId() {
     return '#' + (maxId + 1).toString().padStart(4, '0');
 }
 
-// Function to display orders - tối ưu hóa
+// Function to display orders
 function displayOrders(ordersData) {
     orderTableBody.innerHTML = '';
     
@@ -166,7 +171,6 @@ function displayOrders(ordersData) {
     }
 
     // Sort orders by creation date (newest first)
-    // Chỉ sắp xếp khi cần thiết
     if (!ordersData._sorted) {
         ordersData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         ordersData._sorted = true;
@@ -185,34 +189,16 @@ function displayOrders(ordersData) {
     currentOrders.forEach((order, index) => {
         const row = document.createElement('tr');
         row.classList.add('order-row');
-        if (index < currentOrders.length - 1) {
-            row.classList.add('order-row-border');
-        }
         
         // Đảm bảo ID hiển thị theo định dạng #xxxx
         let displayId = order.id;
         if (!String(displayId).startsWith('#')) {
-            // Nếu ID không bắt đầu bằng #, thêm vào
             displayId = '#' + String(displayId).padStart(4, '0');
         }
         
-        // Tối ưu hiển thị trên mobile - Sử dụng cấu trúc mới
-        if (isMobile) {
-            row.innerHTML = `
-                <td>${displayId}</td>
-                <td>${order.cakeType || 'N/A'}</td>
-                <td>${order.customerName || 'N/A'}</td>
-                <td>${order.orderSource || 'N/A'}</td>
-                <td>${formatToVND(order.orderPrice)}đ</td>
-                <td>${formatToVND(order.deposit)}đ</td>
-                <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus || 'Đã đặt'}</td>
-                <td>${order.deliveryTime ? formatDateTime(order.deliveryTime) : 'N/A'}</td>
-                <td>
-                    <button onclick="editOrder('${order.id}')" class="edit-btn">Sửa</button>
-                    <button onclick="deleteOrder('${order.id}')" class="delete-btn">Xóa</button>
-                </td>
-            `;
-        } else {
+        // Hiển thị khác nhau dựa trên kích thước màn hình
+        if (screenSize === 'desktop') {
+            // Desktop view - hiển thị dạng bảng đầy đủ
             row.innerHTML = `
                 <td>${displayId}</td>
                 <td>${order.cakeType || ''}</td>
@@ -228,6 +214,56 @@ function displayOrders(ordersData) {
                     <button onclick="editOrder('${order.id}')" class="edit-btn">Sửa</button>
                     <button onclick="deleteOrder('${order.id}')" class="delete-btn">Xóa</button>
                 </td>
+            `;
+        } else {
+            // Card view cho tablet và mobile
+            row.innerHTML = `
+                <div class="order-card-header">
+                    <span class="order-id">${displayId}</span>
+                    <span class="order-status ${getStatusClass(order.orderStatus)}">${order.orderStatus || 'Đã đặt'}</span>
+                </div>
+                <div class="order-card-main">
+                    <div class="info-group">
+                        <span class="info-label">Loại bánh</span>
+                        <span class="info-value">${order.cakeType || 'N/A'}</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Khách hàng</span>
+                        <span class="info-value">${order.customerName || 'N/A'}</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Kênh</span>
+                        <span class="info-value">${order.orderSource || 'N/A'}</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Thời gian giao</span>
+                        <span class="info-value">${order.deliveryTime ? formatDateTime(order.deliveryTime) : 'N/A'}</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Giá</span>
+                        <span class="info-value">${formatToVND(order.orderPrice)}đ</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Đã cọc</span>
+                        <span class="info-value">${formatToVND(order.deposit)}đ</span>
+                    </div>
+                    ${order.deliveryAddress ? `
+                        <div class="info-group" style="grid-column: 1 / -1;">
+                            <span class="info-label">Địa chỉ giao</span>
+                            <span class="info-value">${order.deliveryAddress}</span>
+                        </div>
+                    ` : ''}
+                    ${order.orderNotes ? `
+                        <div class="order-card-notes">
+                            <span class="info-label">Nội dung :</span>
+                            <span class="info-value">${order.orderNotes}</span>
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="order-card-footer">
+                    <button onclick="editOrder('${order.id}')" class="edit-btn">Sửa</button>
+                    <button onclick="deleteOrder('${order.id}')" class="delete-btn">Xóa</button>
+                </div>
             `;
         }
         
@@ -260,16 +296,26 @@ function updatePagination(totalPages) {
         if (currentPage > 1) {
             currentPage--;
             displayOrders(orders);
-            // Scroll to top on mobile
-            if (isMobile) {
+            // Scroll to top on mobile/tablet
+            if (screenSize !== 'desktop') {
                 window.scrollTo({top: 0, behavior: 'smooth'});
             }
         }
     };
     pagination.appendChild(prevButton);
 
-    // Page numbers - Hiển thị số nút trang phù hợp với từng thiết bị
-    const maxPageButtons = isMobile ? 3 : (isTabletLandscape ? 5 : 10);
+    // Page numbers - Hiển thị số lượng nút phù hợp với kích thước màn hình
+    let maxPageButtons;
+    if (screenSize === 'mobile-small') {
+        maxPageButtons = 3;
+    } else if (screenSize === 'mobile') {
+        maxPageButtons = 5;
+    } else if (screenSize === 'tablet') {
+        maxPageButtons = 7;
+    } else {
+        maxPageButtons = 10;
+    }
+    
     let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
     let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
     
@@ -285,7 +331,9 @@ function updatePagination(totalPages) {
         firstPageButton.onclick = () => {
             currentPage = 1;
             displayOrders(orders);
-            if (isMobile) window.scrollTo({top: 0, behavior: 'smooth'});
+            if (screenSize !== 'desktop') {
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }
         };
         pagination.appendChild(firstPageButton);
         
@@ -306,7 +354,9 @@ function updatePagination(totalPages) {
         pageButton.onclick = () => {
             currentPage = i;
             displayOrders(orders);
-            if (isMobile) window.scrollTo({top: 0, behavior: 'smooth'});
+            if (screenSize !== 'desktop') {
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }
         };
         pagination.appendChild(pageButton);
     }
@@ -326,7 +376,9 @@ function updatePagination(totalPages) {
         lastPageButton.onclick = () => {
             currentPage = totalPages;
             displayOrders(orders);
-            if (isMobile) window.scrollTo({top: 0, behavior: 'smooth'});
+            if (screenSize !== 'desktop') {
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }
         };
         pagination.appendChild(lastPageButton);
     }
@@ -339,7 +391,9 @@ function updatePagination(totalPages) {
         if (currentPage < totalPages) {
             currentPage++;
             displayOrders(orders);
-            if (isMobile) window.scrollTo({top: 0, behavior: 'smooth'});
+            if (screenSize !== 'desktop') {
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }
         }
     };
     pagination.appendChild(nextButton);
