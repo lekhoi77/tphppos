@@ -2,6 +2,8 @@
 let orders = JSON.parse(localStorage.getItem('orders')) || [];
 let editingOrderId = null;
 let orderToDelete = null;
+let currentPage = 1;
+const ordersPerPage = 10;
 
 // Get DOM elements
 const addOrderBtn = document.getElementById('addOrderBtn');
@@ -68,6 +70,17 @@ depositInput.addEventListener('input', handleMoneyInput);
 addOrderBtn.addEventListener('click', () => {
     editingOrderId = null;
     orderForm.reset();
+    
+    // Set default delivery time to current date and time
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const defaultDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+    document.getElementById('deliveryTime').value = defaultDateTime;
+    
     document.querySelector('.popup-title').textContent = 'THÊM ĐƠN HÀNG';
     const submitButton = orderForm.querySelector('button[type="submit"]');
     submitButton.textContent = 'Thêm';
@@ -100,11 +113,132 @@ function loadOrders() {
     displayOrders(orders);
 }
 
+// Function to generate next order ID
+function generateOrderId() {
+    // Tìm ID lớn nhất hiện tại
+    let maxId = 0;
+    orders.forEach(order => {
+        // Nếu ID là dạng số hoặc chuỗi số (không có #)
+        const numericId = parseInt(String(order.id).replace('#', ''));
+        if (!isNaN(numericId) && numericId > maxId) {
+            maxId = numericId;
+        }
+    });
+    
+    // Tạo ID mới với định dạng #xxxx
+    return '#' + (maxId + 1).toString().padStart(4, '0');
+}
+
+// Function to display orders
+function displayOrders(ordersData) {
+    orderTableBody.innerHTML = '';
+    
+    if (ordersData.length === 0) {
+        orderTableBody.innerHTML = '<tr><td colspan="11" class="no-orders">Chưa có đơn hàng nào</td></tr>';
+        return;
+    }
+
+    // Sort orders by creation date (newest first)
+    ordersData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Calculate pagination
+    const totalPages = Math.ceil(ordersData.length / ordersPerPage);
+    const startIndex = (currentPage - 1) * ordersPerPage;
+    const endIndex = startIndex + ordersPerPage;
+    const currentOrders = ordersData.slice(startIndex, endIndex);
+
+    // Display current page orders
+    currentOrders.forEach((order, index) => {
+        const row = document.createElement('tr');
+        row.classList.add('order-row');
+        if (index < currentOrders.length - 1) {
+            row.classList.add('order-row-border');
+        }
+        
+        // Đảm bảo ID hiển thị theo định dạng #xxxx
+        let displayId = order.id;
+        if (!String(displayId).startsWith('#')) {
+            // Nếu ID không bắt đầu bằng #, thêm vào
+            displayId = '#' + String(displayId).padStart(4, '0');
+        }
+        
+        row.innerHTML = `
+            <td>${displayId}</td>
+            <td>${order.cakeType}</td>
+            <td>${order.customerName}</td>
+            <td>${order.orderNotes}</td>
+            <td>${order.orderSource}</td>
+            <td>${formatToVND(order.orderPrice)}đ</td>
+            <td>${formatToVND(order.deposit)}đ</td>
+            <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus}</td>
+            <td>${order.deliveryAddress}</td>
+            <td>${order.deliveryTime ? formatDateTime(order.deliveryTime) : ''}</td>
+            <td>
+                <button onclick="editOrder('${order.id}')" class="edit-btn">Sửa</button>
+                <button onclick="deleteOrder('${order.id}')" class="delete-btn">Xóa</button>
+            </td>
+        `;
+        orderTableBody.appendChild(row);
+    });
+
+    // Update pagination buttons
+    updatePagination(totalPages);
+}
+
+// Function to update pagination buttons
+function updatePagination(totalPages) {
+    const paginationContainer = document.querySelector('.pagination');
+    if (!paginationContainer) {
+        const container = document.createElement('div');
+        container.className = 'pagination';
+        document.querySelector('main').appendChild(container);
+    }
+
+    const pagination = document.querySelector('.pagination');
+    pagination.innerHTML = '';
+
+    // Previous button
+    const prevButton = document.createElement('button');
+    prevButton.textContent = 'Trước';
+    prevButton.disabled = currentPage === 1;
+    prevButton.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            displayOrders(orders);
+        }
+    };
+    pagination.appendChild(prevButton);
+
+    // Page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        const pageButton = document.createElement('button');
+        pageButton.textContent = i;
+        pageButton.classList.toggle('active', i === currentPage);
+        pageButton.onclick = () => {
+            currentPage = i;
+            displayOrders(orders);
+        };
+        pagination.appendChild(pageButton);
+    }
+
+    // Next button
+    const nextButton = document.createElement('button');
+    nextButton.textContent = 'Sau';
+    nextButton.disabled = currentPage === totalPages;
+    nextButton.onclick = () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            displayOrders(orders);
+        }
+    };
+    pagination.appendChild(nextButton);
+}
+
 // Function to save order
 function saveOrder(orderData) {
     try {
         const formattedData = {
-            id: editingOrderId || Date.now(), // Use timestamp as ID if new order
+            id: editingOrderId || generateOrderId(),
             cakeType: orderData.cakeType,
             customerName: orderData.customerName,
             orderSource: orderData.orderSource,
@@ -118,21 +252,16 @@ function saveOrder(orderData) {
         };
 
         if (editingOrderId) {
-            // Update existing order
             const index = orders.findIndex(order => order.id === editingOrderId);
             if (index !== -1) {
                 orders[index] = formattedData;
             }
         } else {
-            // Add new order
             orders.push(formattedData);
         }
 
-        // Save to localStorage
         localStorage.setItem('orders', JSON.stringify(orders));
-        
-        // Refresh display
-        loadOrders();
+        displayOrders(orders);
         return true;
     } catch (error) {
         console.error('Error saving order:', error);
@@ -141,10 +270,65 @@ function saveOrder(orderData) {
     }
 }
 
+// Function to edit order
+function editOrder(orderId) {
+    // Tìm đơn hàng bằng ID, xử lý cả trường hợp có # và không có #
+    const order = orders.find(order => {
+        // Chuẩn hóa cả hai ID để so sánh
+        const normalizedOrderId = String(order.id).replace('#', '');
+        const normalizedSearchId = String(orderId).replace('#', '');
+        return normalizedOrderId === normalizedSearchId;
+    });
+    
+    if (order) {
+        editingOrderId = order.id; // Sử dụng ID gốc từ đơn hàng tìm thấy
+        
+        // Update modal title
+        document.querySelector('.popup-title').textContent = 'SỬA ĐƠN HÀNG';
+        
+        // Fill form with order data
+        document.getElementById('cakeType').value = order.cakeType || '';
+        document.getElementById('customerName').value = order.customerName || '';
+        document.getElementById('orderSource').value = order.orderSource || '';
+        document.getElementById('orderNotes').value = order.orderNotes || '';
+        document.getElementById('orderPrice').value = formatToVND(order.orderPrice) || '';
+        document.getElementById('deposit').value = formatToVND(order.deposit) || '';
+        document.getElementById('orderStatus').value = order.orderStatus || 'Đã đặt';
+        document.getElementById('deliveryAddress').value = order.deliveryAddress || '';
+        document.getElementById('deliveryTime').value = order.deliveryTime || '';
+        
+        // Update submit button text
+        const submitButton = orderForm.querySelector('button[type="submit"]');
+        submitButton.textContent = 'Cập nhật';
+        
+        // Show modal
+        orderModal.style.display = 'flex';
+    } else {
+        console.error('Không tìm thấy đơn hàng với ID:', orderId);
+    }
+}
+
 // Function to delete order
+function deleteOrder(orderId) {
+    // Lưu ID để xóa sau này
+    orderToDelete = orderId;
+    notification.style.display = 'flex';
+    notificationMessage.textContent = 'Bạn có chắc chắn muốn xóa đơn hàng này?';
+    notificationYes.style.display = 'inline-block';
+    notificationNo.style.display = 'inline-block';
+}
+
+// Function to delete order from DB
 function deleteOrderFromDB(orderId) {
     try {
-        orders = orders.filter(order => order.id !== orderId);
+        // Tìm đơn hàng bằng ID, xử lý cả trường hợp có # và không có #
+        orders = orders.filter(order => {
+            // Chuẩn hóa cả hai ID để so sánh
+            const normalizedOrderId = String(order.id).replace('#', '');
+            const normalizedSearchId = String(orderId).replace('#', '');
+            return normalizedOrderId !== normalizedSearchId;
+        });
+        
         localStorage.setItem('orders', JSON.stringify(orders));
         return true;
     } catch (error) {
@@ -182,7 +366,12 @@ notificationYes.addEventListener('click', () => {
         const success = deleteOrderFromDB(orderToDelete);
         
         if (success) {
-            loadOrders(); // Refresh the orders list
+            // Kiểm tra nếu trang hiện tại không còn đơn hàng nào và không phải trang đầu tiên
+            if (currentPage > 1 && (currentPage - 1) * ordersPerPage >= orders.length) {
+                currentPage--;
+            }
+            
+            displayOrders(orders); // Refresh the orders list
             notificationMessage.textContent = 'Đã xóa đơn hàng thành công!';
             notificationYes.style.display = 'none';
             notificationNo.style.display = 'none';
@@ -203,44 +392,6 @@ notificationNo.addEventListener('click', () => {
     notification.style.display = 'none';
     orderToDelete = null;
 });
-
-// Function to edit order
-function editOrder(orderId) {
-    const order = orders.find(order => order.id === orderId);
-    if (order) {
-        editingOrderId = orderId;
-        
-        // Update modal title
-        document.querySelector('.popup-title').textContent = 'SỬA ĐƠN HÀNG';
-        
-        // Fill form with order data
-        document.getElementById('cakeType').value = order.cakeType || '';
-        document.getElementById('customerName').value = order.customerName || '';
-        document.getElementById('orderSource').value = order.orderSource || '';
-        document.getElementById('orderNotes').value = order.orderNotes || '';
-        document.getElementById('orderPrice').value = formatToVND(order.orderPrice) || '';
-        document.getElementById('deposit').value = formatToVND(order.deposit) || '';
-        document.getElementById('orderStatus').value = order.orderStatus || 'Đã đặt';
-        document.getElementById('deliveryAddress').value = order.deliveryAddress || '';
-        document.getElementById('deliveryTime').value = order.deliveryTime || '';
-        
-        // Update submit button text
-        const submitButton = orderForm.querySelector('button[type="submit"]');
-        submitButton.textContent = 'Cập nhật';
-        
-        // Show modal
-        orderModal.style.display = 'flex';
-    }
-}
-
-// Function to delete order
-function deleteOrder(orderId) {
-    orderToDelete = orderId;
-    notification.style.display = 'flex';
-    notificationMessage.textContent = 'Bạn có chắc chắn muốn xóa đơn hàng này?';
-    notificationYes.style.display = 'inline-block';
-    notificationNo.style.display = 'inline-block';
-}
 
 // Function to format datetime
 function formatDateTime(dateTimeStr) {
@@ -283,44 +434,6 @@ function getStatusClass(status) {
     }
 }
 
-// Function to display orders
-function displayOrders(ordersData) {
-    orderTableBody.innerHTML = '';
-    
-    if (ordersData.length === 0) {
-        orderTableBody.innerHTML = '<tr><td colspan="11" class="no-orders">Chưa có đơn hàng nào</td></tr>';
-        return;
-    }
-
-    // Sort orders by creation date (newest first)
-    ordersData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-    ordersData.forEach((order, index) => {
-        const row = document.createElement('tr');
-        row.classList.add('order-row'); // Add class for styling
-        if (index < ordersData.length - 1) {
-            row.classList.add('order-row-border'); // Add border class except for last row
-        }
-        row.innerHTML = `
-            <td>${order.id}</td>
-            <td>${order.cakeType}</td>
-            <td>${order.customerName}</td>
-            <td>${order.orderNotes}</td>
-            <td>${order.orderSource}</td>
-            <td>${formatToVND(order.orderPrice)}đ</td>
-            <td>${formatToVND(order.deposit)}đ</td>
-            <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus}</td>
-            <td>${order.deliveryAddress}</td>
-            <td>${order.deliveryTime ? formatDateTime(order.deliveryTime) : ''}</td>
-            <td>
-                <button onclick="editOrder(${order.id})" class="edit-btn">Sửa</button>
-                <button onclick="deleteOrder(${order.id})" class="delete-btn">Xóa</button>
-            </td>
-        `;
-        orderTableBody.appendChild(row);
-    });
-}
-
 // Add form submit event listener
 orderForm.addEventListener('submit', handleSubmit);
 
@@ -332,7 +445,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const requiredInputs = document.querySelectorAll('input[required], select[required], textarea[required]');
     requiredInputs.forEach(input => {
         input.oninvalid = function(e) {
-            e.target.setCustomValidity("Vui lòng nhập thông tin");
+            if (input.id === 'orderSource') {
+                e.target.setCustomValidity("Chọn kênh đi trời");
+            } else {
+                e.target.setCustomValidity("Nhập thiếu này nhen");
+            }
         };
         input.oninput = function(e) {
             e.target.setCustomValidity("");
