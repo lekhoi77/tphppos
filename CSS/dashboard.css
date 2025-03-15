@@ -242,11 +242,13 @@ button.add-order span {
     overflow-y: auto;
 }
 
-.modal-content h2 {
+.popup-title {
+    font-size: 24px;
     font-weight: 700;
-    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+   
 }
-
 .close {
     float: right;
     cursor: pointer;
@@ -436,7 +438,7 @@ form button.cancel {
 
 /* Status Colors */
 .status-pending {
-    color: #ffd700;
+    color: #b49b0c;
     font-weight: 600;
 }
 
