@@ -6,10 +6,14 @@
 
 /* Noise effect - giảm độ phức tạp */
 
+@keyframes noise {
+    0% { background-position: 0 0; }
+    100% { background-position: 100% 100%; }
+}
 
 body {
     position: relative;
-    background: linear-gradient(135deg, #8B0000 0%, #690909 50%, #4a0505 100%);
+    background: linear-gradient(100deg, rgba(183, 69, 70, 0.80) 11.38%, rgba(226, 121, 63, 0.80) 47.19%, rgba(250, 215, 131, 0.80) 83%), #FFF;
     margin: 0;
     padding: 0;
     min-height: 100vh;
@@ -489,95 +493,172 @@ form button.cancel {
     background-color: #da190b;
 }
 
-/* Responsive Styles */
+/* Responsive Styles - Cải thiện */
 @media screen and (max-width: 768px) {
     .container {
         width: 100%;
-        padding: 10px;
+        padding: 10px 5px;
     }
 
-    table {
+    /* Thay đổi cách hiển thị bảng trên mobile */
+    table, thead, tbody, th, td, tr {
         display: block;
-        overflow-x: auto;
+    }
+    
+    /* Ẩn header của bảng */
+    thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    
+    /* Hiển thị mỗi dòng như một "card" */
+    tr {
+        margin-bottom: 15px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        position: relative;
+    }
+    
+    /* Hiển thị mỗi ô với label */
+    td {
+        position: relative;
+        padding: 8px 8px 8px 40%;
+        text-align: left;
+        min-height: 30px;
+        border-bottom: 1px solid #f1f1f1;
+    }
+    
+    /* Thêm label cho mỗi ô */
+    td:before {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        width: 35%;
+        padding-right: 10px;
         white-space: nowrap;
-        -webkit-overflow-scrolling: touch; /* Smooth scroll trên iOS */
-        border-radius: 5px; /* Giảm border-radius */
+        font-weight: 600;
+        color: #333;
     }
     
-    th, td {
-        padding: 8px 5px; /* Giảm padding */
+    /* Định nghĩa label cho từng cột */
+    td:nth-of-type(1):before { content: "ID"; }
+    td:nth-of-type(2):before { content: "Loại bánh"; }
+    td:nth-of-type(3):before { content: "Tên"; }
+    td:nth-of-type(4):before { content: "Kênh"; }
+    td:nth-of-type(5):before { content: "Tiền"; }
+    td:nth-of-type(6):before { content: "Cọc"; }
+    td:nth-of-type(7):before { content: "Trạng thái"; }
+    td:nth-of-type(8):before { content: "Giao"; }
+    td:nth-of-type(9):before { content: "Thao tác"; }
+    
+    /* Hiển thị nút thao tác */
+    td:last-child {
+        text-align: center;
+        padding: 10px;
+        border-bottom: none;
     }
     
-    /* Ẩn một số cột ít quan trọng trên mobile */
-    table th:nth-child(4), table td:nth-child(4), /* Notes */
-    table th:nth-child(9), table td:nth-child(9) /* Delivery Address */ {
+    /* Ẩn border cho dòng cuối */
+    .order-row-border {
+        border-bottom: none;
+    }
+    
+    /* Điều chỉnh nút thao tác */
+    .edit-btn, .delete-btn {
+        margin: 5px;
+        min-width: 80px;
+        padding: 8px 15px;
+    }
+    
+    /* Ẩn hiệu ứng noise */
+    body::before {
         display: none;
     }
-
-    body::before {
-        display: none; /* Tắt hiệu ứng noise trên mobile */
+    
+    /* Đơn giản hóa background */
+    body {
+        background: #8B0000;
     }
     
-    body {
-        background: #8B0000; /* Đơn giản hóa background trên mobile */
-    }
-
+    /* Điều chỉnh modal */
     .modal-content {
-        width: 90%;
+        width: 95%;
         max-width: 350px;
         padding: 15px;
     }
-
+    
+    /* Điều chỉnh notification */
     .notification-content {
         width: 95%;
+    }
+    
+    /* Điều chỉnh pagination */
+    .pagination {
+        flex-wrap: wrap;
+        justify-content: center;
     }
 }
 
 @media screen and (max-width: 480px) {
+    /* Điều chỉnh typography */
     .baker {
         font-size: 18px;
     }
-
+    
     .diachi {
         font-size: 14px;
     }
-
+    
     .dashboard_title {
         font-size: 20px;
+        margin-bottom: 15px;
     }
-
-    th, td {
-        padding: 8px;
-        font-size: 12px;
-    }
-
-    .edit-btn, .delete-btn {
-        padding: 4px 8px;
-        font-size: 12px;
-        min-width: 50px;
-    }
-
-    form input, form select, form textarea {
-        padding: 6px;
+    
+    /* Điều chỉnh padding cho td */
+    td {
+        padding: 8px 8px 8px 45%;
         font-size: 13px;
     }
-
+    
+    /* Điều chỉnh nút */
+    .edit-btn, .delete-btn {
+        padding: 6px 12px;
+        font-size: 13px;
+        min-width: 70px;
+    }
+    
+    /* Điều chỉnh form */
+    form input, form select, form textarea {
+        padding: 8px;
+        font-size: 14px;
+    }
+    
+    /* Điều chỉnh notification */
     .notification-content {
         padding: 15px;
     }
-
+    
     .notification-content p {
         font-size: 14px;
     }
-
+    
     .notification-btn {
-        padding: 6px 15px;
-        font-size: 12px;
+        padding: 8px 15px;
+        font-size: 13px;
         min-width: 70px;
     }
-
+    
+    /* Điều chỉnh tiêu đề popup */
     .popup-title {
         font-size: 18px;
+    }
+    
+    /* Điều chỉnh nút thêm đơn hàng */
+    button.add-order {
+        width: 100%;
+        justify-content: center;
     }
 }
 
@@ -616,6 +697,7 @@ form button.cancel {
     align-items: center;
     margin: 20px 0;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .pagination button {
@@ -629,6 +711,12 @@ form button.cancel {
     font-weight: 500;
     background-color: #888888;
     color: white;
+}
+
+.pagination-ellipsis {
+    margin: 0 5px;
+    color: #666;
+    font-weight: bold;
 }
 
 .pagination button:hover:not(:disabled) {
@@ -659,16 +747,63 @@ form button.cancel {
     opacity: 0.7;
 }
 
-/* Responsive adjustments for pagination */
+/* Status Colors */
+.status-delivered {
+    color: #2ecc71;
+    font-weight: 600;
+}
+
+.status-ordered {
+    color: #b49b0c;
+    font-weight: 600;
+}
+
+.status-cancelled {
+    color: #e74c3c;
+    font-weight: 600;
+}
+
+/* Thêm style cho no-orders */
+.no-orders {
+    text-align: center;
+    padding: 30px;
+    font-size: 16px;
+    color: #666;
+    background: white;
+    border-radius: 8px;
+}
+
 @media screen and (max-width: 480px) {
     .pagination {
         gap: 4px;
+        margin: 15px 0;
     }
 
     .pagination button {
         padding: 4px 8px;
         font-size: 12px;
         min-width: 30px;
+    }
+    
+    .pagination-ellipsis {
+        margin: 0 2px;
+        font-size: 12px;
+    }
+    
+    /* Thêm margin cho các card */
+    tr {
+        margin-bottom: 10px;
+    }
+    
+    /* Tăng kích thước nút thêm đơn hàng */
+    button.add-order {
+        padding: 12px 20px;
+        margin-bottom: 15px;
+    }
+    
+    /* Điều chỉnh khoảng cách */
+    .add-order-container {
+        margin: 15px 0;
     }
 }
 
@@ -687,5 +822,92 @@ form button.cancel {
     
     label > span.required {
         animation: none !important;
+    }
+}
+
+/* Media query cho tablet landscape mode */
+@media screen and (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
+    .container {
+        width: 98%;
+        padding: 15px;
+    }
+    
+    /* Điều chỉnh bảng cho tablet landscape */
+    table {
+        font-size: 14px;
+    }
+    
+    th, td {
+        padding: 10px 5px;
+    }
+    
+    /* Điều chỉnh kích thước cột cho tablet landscape */
+    table th:nth-child(1),
+    table td:nth-child(1) { /* ID */
+        width: 5%;
+    }
+    
+    table th:nth-child(2),
+    table td:nth-child(2) { /* Cake Type */
+        width: 10%;
+    }
+    
+    table th:nth-child(3),
+    table td:nth-child(3) { /* Name */
+        width: 10%;
+    }
+    
+    table th:nth-child(4),
+    table td:nth-child(4) { /* Notes */
+        width: 15%;
+    }
+    
+    table th:nth-child(5),
+    table td:nth-child(5) { /* Source */
+        width: 8%;
+    }
+    
+    table th:nth-child(6),
+    table td:nth-child(6),
+    table th:nth-child(7),
+    table td:nth-child(7) { /* Price & Deposit */
+        width: 8%;
+    }
+    
+    table th:nth-child(8),
+    table td:nth-child(8) { /* Status */
+        width: 8%;
+    }
+    
+    table th:nth-child(9),
+    table td:nth-child(9) { /* Address */
+        width: 12%;
+    }
+    
+    table th:nth-child(10),
+    table td:nth-child(10) { /* Delivery Time */
+        width: 10%;
+    }
+    
+    table th:nth-child(11),
+    table td:nth-child(11) { /* Action */
+        width: 14%;
+    }
+    
+    /* Điều chỉnh nút */
+    .edit-btn, .delete-btn {
+        padding: 6px 12px;
+        min-width: 60px;
+        margin: 3px;
+    }
+    
+    /* Điều chỉnh modal */
+    .modal-content {
+        max-width: 500px;
+    }
+    
+    /* Điều chỉnh pagination */
+    .pagination button {
+        min-width: 35px;
     }
 }

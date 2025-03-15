@@ -5,6 +5,7 @@ let orderToDelete = null;
 let currentPage = 1;
 const ordersPerPage = 10;
 let isMobile = window.innerWidth <= 768; // Kiểm tra nếu là mobile
+let isTabletLandscape = window.innerWidth > 768 && window.innerWidth <= 1024 && window.innerHeight < window.innerWidth; // Kiểm tra nếu là tablet landscape
 
 // Debounce function để tối ưu hiệu năng
 function debounce(func, wait) {
@@ -19,8 +20,16 @@ function debounce(func, wait) {
 
 // Theo dõi resize window với debounce
 window.addEventListener('resize', debounce(function() {
+    const wasMobile = isMobile;
+    const wasTabletLandscape = isTabletLandscape;
+    
     isMobile = window.innerWidth <= 768;
-    displayOrders(orders);
+    isTabletLandscape = window.innerWidth > 768 && window.innerWidth <= 1024 && window.innerHeight < window.innerWidth;
+    
+    // Chỉ reload khi chuyển đổi giữa các mode
+    if (wasMobile !== isMobile || wasTabletLandscape !== isTabletLandscape) {
+        displayOrders(orders);
+    }
 }, 250));
 
 // Get DOM elements
@@ -187,17 +196,17 @@ function displayOrders(ordersData) {
             displayId = '#' + String(displayId).padStart(4, '0');
         }
         
-        // Tối ưu hiển thị trên mobile
+        // Tối ưu hiển thị trên mobile - Sử dụng cấu trúc mới
         if (isMobile) {
             row.innerHTML = `
                 <td>${displayId}</td>
-                <td>${order.cakeType}</td>
-                <td>${order.customerName}</td>
-                <td>${order.orderSource}</td>
+                <td>${order.cakeType || 'N/A'}</td>
+                <td>${order.customerName || 'N/A'}</td>
+                <td>${order.orderSource || 'N/A'}</td>
                 <td>${formatToVND(order.orderPrice)}đ</td>
                 <td>${formatToVND(order.deposit)}đ</td>
-                <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus}</td>
-                <td>${order.deliveryTime ? formatDateTime(order.deliveryTime) : ''}</td>
+                <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus || 'Đã đặt'}</td>
+                <td>${order.deliveryTime ? formatDateTime(order.deliveryTime) : 'N/A'}</td>
                 <td>
                     <button onclick="editOrder('${order.id}')" class="edit-btn">Sửa</button>
                     <button onclick="deleteOrder('${order.id}')" class="delete-btn">Xóa</button>
@@ -206,14 +215,14 @@ function displayOrders(ordersData) {
         } else {
             row.innerHTML = `
                 <td>${displayId}</td>
-                <td>${order.cakeType}</td>
-                <td>${order.customerName}</td>
-                <td>${order.orderNotes}</td>
-                <td>${order.orderSource}</td>
+                <td>${order.cakeType || ''}</td>
+                <td>${order.customerName || ''}</td>
+                <td>${order.orderNotes || ''}</td>
+                <td>${order.orderSource || ''}</td>
                 <td>${formatToVND(order.orderPrice)}đ</td>
                 <td>${formatToVND(order.deposit)}đ</td>
-                <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus}</td>
-                <td>${order.deliveryAddress}</td>
+                <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus || 'Đã đặt'}</td>
+                <td>${order.deliveryAddress || ''}</td>
                 <td>${order.deliveryTime ? formatDateTime(order.deliveryTime) : ''}</td>
                 <td>
                     <button onclick="editOrder('${order.id}')" class="edit-btn">Sửa</button>
@@ -251,20 +260,75 @@ function updatePagination(totalPages) {
         if (currentPage > 1) {
             currentPage--;
             displayOrders(orders);
+            // Scroll to top on mobile
+            if (isMobile) {
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }
         }
     };
     pagination.appendChild(prevButton);
 
-    // Page numbers
-    for (let i = 1; i <= totalPages; i++) {
+    // Page numbers - Hiển thị số nút trang phù hợp với từng thiết bị
+    const maxPageButtons = isMobile ? 3 : (isTabletLandscape ? 5 : 10);
+    let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
+    let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
+    
+    // Điều chỉnh lại startPage nếu cần
+    if (endPage - startPage + 1 < maxPageButtons) {
+        startPage = Math.max(1, endPage - maxPageButtons + 1);
+    }
+    
+    // Thêm nút trang đầu nếu cần
+    if (startPage > 1) {
+        const firstPageButton = document.createElement('button');
+        firstPageButton.textContent = '1';
+        firstPageButton.onclick = () => {
+            currentPage = 1;
+            displayOrders(orders);
+            if (isMobile) window.scrollTo({top: 0, behavior: 'smooth'});
+        };
+        pagination.appendChild(firstPageButton);
+        
+        // Thêm dấu ... nếu cần
+        if (startPage > 2) {
+            const ellipsis = document.createElement('span');
+            ellipsis.textContent = '...';
+            ellipsis.className = 'pagination-ellipsis';
+            pagination.appendChild(ellipsis);
+        }
+    }
+
+    // Thêm các nút trang
+    for (let i = startPage; i <= endPage; i++) {
         const pageButton = document.createElement('button');
         pageButton.textContent = i;
         pageButton.classList.toggle('active', i === currentPage);
         pageButton.onclick = () => {
             currentPage = i;
             displayOrders(orders);
+            if (isMobile) window.scrollTo({top: 0, behavior: 'smooth'});
         };
         pagination.appendChild(pageButton);
+    }
+    
+    // Thêm nút trang cuối nếu cần
+    if (endPage < totalPages) {
+        // Thêm dấu ... nếu cần
+        if (endPage < totalPages - 1) {
+            const ellipsis = document.createElement('span');
+            ellipsis.textContent = '...';
+            ellipsis.className = 'pagination-ellipsis';
+            pagination.appendChild(ellipsis);
+        }
+        
+        const lastPageButton = document.createElement('button');
+        lastPageButton.textContent = totalPages;
+        lastPageButton.onclick = () => {
+            currentPage = totalPages;
+            displayOrders(orders);
+            if (isMobile) window.scrollTo({top: 0, behavior: 'smooth'});
+        };
+        pagination.appendChild(lastPageButton);
     }
 
     // Next button
@@ -275,6 +339,7 @@ function updatePagination(totalPages) {
         if (currentPage < totalPages) {
             currentPage++;
             displayOrders(orders);
+            if (isMobile) window.scrollTo({top: 0, behavior: 'smooth'});
         }
     };
     pagination.appendChild(nextButton);
