@@ -4,6 +4,24 @@ let editingOrderId = null;
 let orderToDelete = null;
 let currentPage = 1;
 const ordersPerPage = 10;
+let isMobile = window.innerWidth <= 768; // Kiểm tra nếu là mobile
+
+// Debounce function để tối ưu hiệu năng
+function debounce(func, wait) {
+    let timeout;
+    return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+}
+
+// Theo dõi resize window với debounce
+window.addEventListener('resize', debounce(function() {
+    isMobile = window.innerWidth <= 768;
+    displayOrders(orders);
+}, 250));
 
 // Get DOM elements
 const addOrderBtn = document.getElementById('addOrderBtn');
@@ -129,7 +147,7 @@ function generateOrderId() {
     return '#' + (maxId + 1).toString().padStart(4, '0');
 }
 
-// Function to display orders
+// Function to display orders - tối ưu hóa
 function displayOrders(ordersData) {
     orderTableBody.innerHTML = '';
     
@@ -139,13 +157,20 @@ function displayOrders(ordersData) {
     }
 
     // Sort orders by creation date (newest first)
-    ordersData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    // Chỉ sắp xếp khi cần thiết
+    if (!ordersData._sorted) {
+        ordersData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        ordersData._sorted = true;
+    }
 
     // Calculate pagination
     const totalPages = Math.ceil(ordersData.length / ordersPerPage);
     const startIndex = (currentPage - 1) * ordersPerPage;
-    const endIndex = startIndex + ordersPerPage;
+    const endIndex = Math.min(startIndex + ordersPerPage, ordersData.length);
     const currentOrders = ordersData.slice(startIndex, endIndex);
+
+    // Tạo fragment để tối ưu DOM operations
+    const fragment = document.createDocumentFragment();
 
     // Display current page orders
     currentOrders.forEach((order, index) => {
@@ -162,24 +187,45 @@ function displayOrders(ordersData) {
             displayId = '#' + String(displayId).padStart(4, '0');
         }
         
-        row.innerHTML = `
-            <td>${displayId}</td>
-            <td>${order.cakeType}</td>
-            <td>${order.customerName}</td>
-            <td>${order.orderNotes}</td>
-            <td>${order.orderSource}</td>
-            <td>${formatToVND(order.orderPrice)}đ</td>
-            <td>${formatToVND(order.deposit)}đ</td>
-            <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus}</td>
-            <td>${order.deliveryAddress}</td>
-            <td>${order.deliveryTime ? formatDateTime(order.deliveryTime) : ''}</td>
-            <td>
-                <button onclick="editOrder('${order.id}')" class="edit-btn">Sửa</button>
-                <button onclick="deleteOrder('${order.id}')" class="delete-btn">Xóa</button>
-            </td>
-        `;
-        orderTableBody.appendChild(row);
+        // Tối ưu hiển thị trên mobile
+        if (isMobile) {
+            row.innerHTML = `
+                <td>${displayId}</td>
+                <td>${order.cakeType}</td>
+                <td>${order.customerName}</td>
+                <td>${order.orderSource}</td>
+                <td>${formatToVND(order.orderPrice)}đ</td>
+                <td>${formatToVND(order.deposit)}đ</td>
+                <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus}</td>
+                <td>${order.deliveryTime ? formatDateTime(order.deliveryTime) : ''}</td>
+                <td>
+                    <button onclick="editOrder('${order.id}')" class="edit-btn">Sửa</button>
+                    <button onclick="deleteOrder('${order.id}')" class="delete-btn">Xóa</button>
+                </td>
+            `;
+        } else {
+            row.innerHTML = `
+                <td>${displayId}</td>
+                <td>${order.cakeType}</td>
+                <td>${order.customerName}</td>
+                <td>${order.orderNotes}</td>
+                <td>${order.orderSource}</td>
+                <td>${formatToVND(order.orderPrice)}đ</td>
+                <td>${formatToVND(order.deposit)}đ</td>
+                <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus}</td>
+                <td>${order.deliveryAddress}</td>
+                <td>${order.deliveryTime ? formatDateTime(order.deliveryTime) : ''}</td>
+                <td>
+                    <button onclick="editOrder('${order.id}')" class="edit-btn">Sửa</button>
+                    <button onclick="deleteOrder('${order.id}')" class="delete-btn">Xóa</button>
+                </td>
+            `;
+        }
+        
+        fragment.appendChild(row);
     });
+    
+    orderTableBody.appendChild(fragment);
 
     // Update pagination buttons
     updatePagination(totalPages);

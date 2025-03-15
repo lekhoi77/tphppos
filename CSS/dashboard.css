@@ -4,19 +4,17 @@
     font-family: 'Poppins', sans-serif;
 }
 
-/* Noise effect */
-@keyframes noise {
-    0% { background-position: 0 0; }
-    100% { background-position: 100% 100%; }
-}
+/* Noise effect - giảm độ phức tạp */
+
 
 body {
     position: relative;
-    background: linear-gradient(100deg, rgba(183, 69, 70, 0.80) 11.38%, rgba(226, 121, 63, 0.80) 47.19%, rgba(250, 215, 131, 0.80) 83%), #FFF;
+    background: linear-gradient(135deg, #8B0000 0%, #690909 50%, #4a0505 100%);
     margin: 0;
     padding: 0;
     min-height: 100vh;
-    
+    overflow-x: hidden;
+    will-change: transform; /* Tối ưu render */
 }
 
 body::before {
@@ -278,6 +276,8 @@ button.add-order span {
     max-width: 400px;
     max-height: 85vh;
     overflow-y: auto;
+    transform: translateZ(0); /* Kích hoạt GPU acceleration */
+    will-change: transform; /* Tối ưu render */
 }
 
 .popup-title {
@@ -316,6 +316,8 @@ form input, form select, form textarea {
     outline: none;
     width: 100%;
     box-sizing: border-box;
+    will-change: transform; /* Tối ưu render */
+    -webkit-tap-highlight-color: transparent; /* Loại bỏ highlight khi tap trên mobile */
 }
 
 /* Style cho các trường bắt buộc */
@@ -498,11 +500,26 @@ form button.cancel {
         display: block;
         overflow-x: auto;
         white-space: nowrap;
+        -webkit-overflow-scrolling: touch; /* Smooth scroll trên iOS */
+        border-radius: 5px; /* Giảm border-radius */
+    }
+    
+    th, td {
+        padding: 8px 5px; /* Giảm padding */
+    }
+    
+    /* Ẩn một số cột ít quan trọng trên mobile */
+    table th:nth-child(4), table td:nth-child(4), /* Notes */
+    table th:nth-child(9), table td:nth-child(9) /* Delivery Address */ {
+        display: none;
     }
 
-    th, td {
-        padding: 10px;
-        font-size: 14px;
+    body::before {
+        display: none; /* Tắt hiệu ứng noise trên mobile */
+    }
+    
+    body {
+        background: #8B0000; /* Đơn giản hóa background trên mobile */
     }
 
     .modal-content {
@@ -652,5 +669,23 @@ form button.cancel {
         padding: 4px 8px;
         font-size: 12px;
         min-width: 30px;
+    }
+}
+
+/* Tối ưu animation */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    body::before {
+        animation: none !important;
+    }
+    
+    label > span.required {
+        animation: none !important;
     }
 }
