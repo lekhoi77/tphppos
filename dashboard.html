@@ -54,26 +54,30 @@
                 <label>Loại bánh<span class="required">*</span></label>
                 <select id="cakeType" required>
                     <option value="">-- Chọn loại bánh --</option>
-                    <option>Bánh kem</option>
-                    <option>Bánh cưới</option>
-                    <option>Bánh sinh nhật</option>
+                    <option>Bánh Kem thường</option>
+                    <option>Bánh Kem chọn mẫu</option>
+                    <option>Bánh Bông Lan Trứng Muối</option>
+                    <option>Bánh Rau Câu</option>
+                    <option>Bánh Tiramisu</option>
+                    <option>Bánh Kem Bắp</option>
+                    <option>Bánh Kem rút tiền</option>
                 </select>
                 <label>Tên<span class="required">*</span></label>
-                <input type="text" id="customerName" required>
+                <input type="text" id="customerName" placeholder="Nhập tên khách hàng" required>
                 <label>Nguồn<span class="required">*</span></label>
                 <select id="orderSource" required>
-                    <option value="">-- Chọn nguồn --</option>
+                    <option value="">-- Chọn nguồn đơn hàng --</option>
                     <option>Facebook</option>
                     <option>Zalo</option>
                     <option>Hỏa Tốc 247</option>
                     <option>Trực tiếp</option>
                 </select>
                 <label>Nội dung<span class="required">*</span></label>
-                <textarea id="orderNotes" required></textarea>
+                <textarea id="orderNotes" placeholder="Nhập chi tiết đơn hàng (kích thước, màu sắc, hình ảnh, yêu cầu đặc biệt...)" required></textarea>
                 <label>Tiền<span class="required">*</span></label>
-                <input type="text" id="orderPrice" inputmode="numeric" placeholder="0" maxlength="10" required>
+                <input type="text" id="orderPrice" inputmode="numeric" placeholder="Nhập tổng tiền đơn hàng" maxlength="10" required>
                 <label>Cọc</label>
-                <input type="text" id="deposit" inputmode="numeric" placeholder="0" maxlength="10">
+                <input type="text" id="deposit" inputmode="numeric" placeholder="Nhập số tiền cọc (nếu có)" maxlength="10">
                 <label>Trạng thái</label>
                 <select id="orderStatus">
                     <option>Đã đặt</option>
@@ -81,9 +85,9 @@
                     <option>Hủy</option>
                 </select>
                 <label>Địa chỉ giao<span class="required">*</span></label>
-                <input type="text" id="deliveryAddress" required>
+                <input type="text" id="deliveryAddress" placeholder="Nhập địa chỉ giao hàng" required>
                 <label>Thời gian giao</label>
-                <input type="datetime-local" id="deliveryTime">
+                <input type="datetime-local" id="deliveryTime" placeholder="Chọn thời gian giao hàng">
                 <button type="submit">Thêm</button>
                 <button type="button" class="cancel">Hủy</button>
             </form>

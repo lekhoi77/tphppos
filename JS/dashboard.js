@@ -1,12 +1,7 @@
-// Initialize orders array
-let orders = [];
+// Initialize orders array from localStorage or empty array if none exists
+let orders = JSON.parse(localStorage.getItem('orders')) || [];
 let editingOrderId = null;
 let orderToDelete = null;
-
-// API endpoint - will be replaced with actual URL when deployed
-const API_URL = window.location.hostname === 'localhost' 
-    ? 'http://localhost:3001/api/orders'
-    : 'https://your-render-app-name.onrender.com/api/orders';
 
 // Get DOM elements
 const addOrderBtn = document.getElementById('addOrderBtn');
@@ -23,7 +18,6 @@ const notificationNo = document.getElementById('notification-no');
 // Money formatting functions
 function formatToVND(number) {
     if (!number) return '';
-    // Convert to number, round to remove any decimals, then format with dots
     const roundedNumber = Math.round(Number(number));
     return roundedNumber.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
@@ -49,7 +43,6 @@ function handleMoneyInput(e) {
 
 // Function to handle money keydown
 function handleMoneyKeydown(e) {
-    // Allow only: numbers, backspace, delete, left arrow, right arrow, tab
     if (!((e.keyCode > 47 && e.keyCode < 58) || // numbers
           (e.keyCode > 95 && e.keyCode < 106) || // numpad
           e.keyCode === 8 || // backspace
@@ -73,7 +66,7 @@ depositInput.addEventListener('input', handleMoneyInput);
 
 // Show modal when add order button is clicked
 addOrderBtn.addEventListener('click', () => {
-    editingOrderId = null; // Reset editing state
+    editingOrderId = null;
     orderForm.reset();
     document.querySelector('.popup-title').textContent = 'THÊM ĐƠN HÀNG';
     const submitButton = orderForm.querySelector('button[type="submit"]');
@@ -81,7 +74,7 @@ addOrderBtn.addEventListener('click', () => {
     orderModal.style.display = 'flex';
 });
 
-// Close modal when clicking close button or cancel button
+// Close modal functions
 closeBtn.addEventListener('click', () => {
     orderModal.style.display = 'none';
     orderForm.reset();
@@ -102,27 +95,16 @@ window.addEventListener('click', (e) => {
     }
 });
 
-// Function to fetch orders
-async function fetchOrders() {
-    try {
-        const response = await fetch(API_URL);
-        const result = await response.json();
-        if (result.status === 'success') {
-            orders = result.data;
-            displayOrders(orders);
-        } else {
-            console.error('Error fetching orders:', result.message);
-        }
-    } catch (error) {
-        console.error('Error fetching orders:', error);
-        orderTableBody.innerHTML = '<tr><td colspan="11" class="error-message">Could not load orders</td></tr>';
-    }
+// Function to load orders from localStorage
+function loadOrders() {
+    displayOrders(orders);
 }
 
 // Function to save order
-async function saveOrder(orderData) {
+function saveOrder(orderData) {
     try {
         const formattedData = {
+            id: editingOrderId || Date.now(), // Use timestamp as ID if new order
             cakeType: orderData.cakeType,
             customerName: orderData.customerName,
             orderSource: orderData.orderSource,
@@ -131,32 +113,27 @@ async function saveOrder(orderData) {
             deposit: orderData.deposit ? orderData.deposit.replace(/[,.]/g, '') : 0,
             orderStatus: orderData.orderStatus || 'Đã đặt',
             deliveryAddress: orderData.deliveryAddress,
-            deliveryTime: orderData.deliveryTime
+            deliveryTime: orderData.deliveryTime,
+            createdAt: editingOrderId ? (orders.find(o => o.id === editingOrderId)?.createdAt || new Date().toISOString()) : new Date().toISOString()
         };
 
-        const method = editingOrderId ? 'PUT' : 'POST';
-        const url = editingOrderId ? `${API_URL}/${editingOrderId}` : API_URL;
-
-        const response = await fetch(url, {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formattedData)
-        });
-        
-        const result = await response.json();
-        
-        if (result.status === 'success') {
-            await fetchOrders(); // Fetch updated orders list
-            orderModal.style.display = 'none'; // Close the modal
-            orderForm.reset(); // Reset the form
-            editingOrderId = null; // Reset editing state
-            return true;
+        if (editingOrderId) {
+            // Update existing order
+            const index = orders.findIndex(order => order.id === editingOrderId);
+            if (index !== -1) {
+                orders[index] = formattedData;
+            }
         } else {
-            alert(result.message || 'Có lỗi xảy ra khi lưu đơn hàng!');
-            return false;
+            // Add new order
+            orders.push(formattedData);
         }
+
+        // Save to localStorage
+        localStorage.setItem('orders', JSON.stringify(orders));
+        
+        // Refresh display
+        loadOrders();
+        return true;
     } catch (error) {
         console.error('Error saving order:', error);
         alert('Có lỗi xảy ra khi lưu đơn hàng! Vui lòng kiểm tra lại thông tin.');
@@ -164,17 +141,12 @@ async function saveOrder(orderData) {
     }
 }
 
-// Function to delete order from database
-async function deleteOrderFromDB(orderId) {
+// Function to delete order
+function deleteOrderFromDB(orderId) {
     try {
-        const response = await fetch(`${API_URL}/${orderId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        const result = await response.json();
-        return result.status === 'success';
+        orders = orders.filter(order => order.id !== orderId);
+        localStorage.setItem('orders', JSON.stringify(orders));
+        return true;
     } catch (error) {
         console.error('Error deleting order:', error);
         return false;
@@ -182,7 +154,7 @@ async function deleteOrderFromDB(orderId) {
 }
 
 // Function to handle form submission
-async function handleSubmit(event) {
+function handleSubmit(event) {
     event.preventDefault();
     
     // Get form values
@@ -198,20 +170,19 @@ async function handleSubmit(event) {
         deliveryTime: document.getElementById('deliveryTime').value
     };
 
-    if (await saveOrder(orderData)) {
-        // Reset form and close modal on success
+    if (saveOrder(orderData)) {
         orderForm.reset();
         orderModal.style.display = 'none';
     }
 }
 
 // Handle notification buttons
-notificationYes.addEventListener('click', async () => {
+notificationYes.addEventListener('click', () => {
     if (orderToDelete !== null) {
-        const success = await deleteOrderFromDB(orderToDelete);
+        const success = deleteOrderFromDB(orderToDelete);
         
         if (success) {
-            await fetchOrders(); // Refresh the orders list
+            loadOrders(); // Refresh the orders list
             notificationMessage.textContent = 'Đã xóa đơn hàng thành công!';
             notificationYes.style.display = 'none';
             notificationNo.style.display = 'none';
@@ -251,31 +222,31 @@ function editOrder(orderId) {
         document.getElementById('deposit').value = formatToVND(order.deposit) || '';
         document.getElementById('orderStatus').value = order.orderStatus || 'Đã đặt';
         document.getElementById('deliveryAddress').value = order.deliveryAddress || '';
-        document.getElementById('deliveryTime').value = order.deliveryTime ? order.deliveryTime.slice(0, 16) : '';
-        
-        // Show modal
-        orderModal.style.display = 'flex';
+        document.getElementById('deliveryTime').value = order.deliveryTime || '';
         
         // Update submit button text
         const submitButton = orderForm.querySelector('button[type="submit"]');
         submitButton.textContent = 'Cập nhật';
+        
+        // Show modal
+        orderModal.style.display = 'flex';
     }
 }
 
 // Function to delete order
 function deleteOrder(orderId) {
     orderToDelete = orderId;
-    notificationMessage.textContent = 'Bạn có chắc chắn muốn xóa đơn hàng này?';
-    notificationYes.style.display = 'block';
-    notificationNo.style.display = 'block';
     notification.style.display = 'flex';
+    notificationMessage.textContent = 'Bạn có chắc chắn muốn xóa đơn hàng này?';
+    notificationYes.style.display = 'inline-block';
+    notificationNo.style.display = 'inline-block';
 }
 
-// Function to format date time
+// Function to format datetime
 function formatDateTime(dateTimeStr) {
     if (!dateTimeStr) return '';
     const date = new Date(dateTimeStr);
-    if (isNaN(date.getTime())) return '';
+    if (isNaN(date.getTime())) return dateTimeStr;
     
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -286,11 +257,11 @@ function formatDateTime(dateTimeStr) {
     return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
 
-// Function to format date only
+// Function to format date
 function formatDate(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return '';
+    if (isNaN(date.getTime())) return dateStr;
     
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -301,40 +272,46 @@ function formatDate(dateStr) {
 
 // Function to get status class
 function getStatusClass(status) {
-    switch(status) {
-        case 'Đã đặt':
-            return 'status-pending';
+    switch (status) {
         case 'Đã giao':
-            return 'status-completed';
+            return 'status-delivered';
         case 'Hủy':
             return 'status-cancelled';
+        case 'Đã đặt':
         default:
-            return '';
+            return 'status-ordered';
     }
 }
 
-// Function to display orders in table
+// Function to display orders
 function displayOrders(ordersData) {
     orderTableBody.innerHTML = '';
     
-    if (!ordersData || ordersData.length === 0) {
-        orderTableBody.innerHTML = '<tr><td colspan="11" class="text-center">Không có đơn hàng nào</td></tr>';
+    if (ordersData.length === 0) {
+        orderTableBody.innerHTML = '<tr><td colspan="11" class="no-orders">Chưa có đơn hàng nào</td></tr>';
         return;
     }
-    
-    ordersData.forEach(order => {
+
+    // Sort orders by creation date (newest first)
+    ordersData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    ordersData.forEach((order, index) => {
         const row = document.createElement('tr');
+        row.classList.add('order-row'); // Add class for styling
+        if (index < ordersData.length - 1) {
+            row.classList.add('order-row-border'); // Add border class except for last row
+        }
         row.innerHTML = `
-            <td>#${order.id}</td>
-            <td>${order.cakeType || ''}</td>
-            <td>${order.customerName || ''}</td>
-            <td>${order.orderNotes || ''}</td>
-            <td>${order.orderSource || ''}</td>
-            <td>${formatToVND(order.orderPrice) || '0'}</td>
-            <td>${formatToVND(order.deposit) || '0'}</td>
-            <td><span class="${getStatusClass(order.orderStatus)}">${order.orderStatus || 'Đã đặt'}</span></td>
-            <td>${order.deliveryAddress || ''}</td>
-            <td>${formatDateTime(order.deliveryTime) || ''}</td>
+            <td>${order.id}</td>
+            <td>${order.cakeType}</td>
+            <td>${order.customerName}</td>
+            <td>${order.orderNotes}</td>
+            <td>${order.orderSource}</td>
+            <td>${formatToVND(order.orderPrice)}đ</td>
+            <td>${formatToVND(order.deposit)}đ</td>
+            <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus}</td>
+            <td>${order.deliveryAddress}</td>
+            <td>${order.deliveryTime ? formatDateTime(order.deliveryTime) : ''}</td>
             <td>
                 <button onclick="editOrder(${order.id})" class="edit-btn">Sửa</button>
                 <button onclick="deleteOrder(${order.id})" class="delete-btn">Xóa</button>
@@ -344,8 +321,11 @@ function displayOrders(ordersData) {
     });
 }
 
+// Add form submit event listener
+orderForm.addEventListener('submit', handleSubmit);
+
 // Initial load of orders
-fetchOrders();
+loadOrders();
 
 // Add custom validation message for required fields
 document.addEventListener('DOMContentLoaded', function() {
@@ -358,7 +338,4 @@ document.addEventListener('DOMContentLoaded', function() {
             e.target.setCustomValidity("");
         };
     });
-});
-
-// Add event listener for form submission
-orderForm.addEventListener('submit', handleSubmit); 
+}); 
