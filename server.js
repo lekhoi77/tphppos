@@ -6,19 +6,15 @@ const cors = require('cors');
 const app = express();
 
 // CORS configuration
-app.use(cors());
+app.use(cors({
+    origin: '*', // Allow all origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type']
+}));
 
 // Middleware
 app.use(express.json());
 app.use(express.static('.')); // Serve static files from current directory
-
-// Add headers middleware
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    next();
-});
 
 // Database connection
 const db = mysql.createConnection({

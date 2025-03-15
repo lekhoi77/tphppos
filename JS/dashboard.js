@@ -3,8 +3,10 @@ let orders = [];
 let editingOrderId = null;
 let orderToDelete = null;
 
-// API endpoint
-const API_URL = 'http://localhost:3001/api/orders';
+// API endpoint - will be replaced with actual URL when deployed
+const API_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:3001/api/orders'
+    : 'https://your-render-app-name.onrender.com/api/orders';
 
 // Get DOM elements
 const addOrderBtn = document.getElementById('addOrderBtn');
