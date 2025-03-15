@@ -239,6 +239,18 @@ function deleteOrder(orderId) {
     notification.style.display = 'flex';
 }
 
+// Function to format datetime-local for display
+function formatDateTime(datetimeStr) {
+    if (!datetimeStr) return '';
+    const date = new Date(datetimeStr);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+}
+
 // Function to display orders in table
 function displayOrders() {
     orderTableBody.innerHTML = '';
@@ -255,6 +267,7 @@ function displayOrders() {
             <td>${formatToVND(order.deposit)}</td>
             <td>${order.orderStatus}</td>
             <td>${order.deliveryAddress}</td>
+            <td>${formatDateTime(order.deliveryTime)}</td>
             <td>
                 <button onclick="editOrder(${order.id})" class="edit-btn">Sửa</button>
                 <button onclick="deleteOrder(${order.id})" class="delete-btn">Xóa</button>

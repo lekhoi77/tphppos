@@ -34,6 +34,7 @@
                         <th>Tiền</th>
                         <th>Cọc</th>
                         <th>Trạng thái</th>
+                        <th>Địa chỉ</th>
                         <th>Giao</th>
                         <th>Thao tác</th>
                     </tr>
@@ -47,13 +48,17 @@
     <div id="orderModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>+ THÊM ĐƠN HÀNG</h2>
+            <h2>THÊM ĐƠN HÀNG</h2>
             <form id="orderForm">
                 <label>Loại bánh</label>
                 <select id="cakeType">
+                    <option>Bánh bento</option>
                     <option>Bánh kem</option>
+                    <option>Bánh Bông Lan Trứng Muối</option>
+                    <option>Bánh Đông Sương</option>
                     <option>Bánh cưới</option>
                     <option>Bánh sinh nhật</option>
+                
                 </select>
                 <label>Tên</label>
                 <input type="text" id="customerName">
