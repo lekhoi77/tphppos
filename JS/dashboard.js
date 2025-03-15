@@ -98,8 +98,40 @@ orderPriceInput.addEventListener('input', handleMoneyInput);
 depositInput.addEventListener('keydown', handleMoneyKeydown);
 depositInput.addEventListener('input', handleMoneyInput);
 
+// Function to show modal at clicked position
+function showModalAtPosition(clickEvent) {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const clickY = clickEvent.clientY + scrollTop;
+    
+    orderModal.style.display = 'block';
+    const modalContent = orderModal.querySelector('.modal-content');
+    const modalHeight = modalContent.offsetHeight;
+    const windowHeight = window.innerHeight;
+    
+    // Calculate the best position to show the modal
+    let topPosition = clickY - (modalHeight / 2);
+    
+    // Make sure the modal doesn't go above the viewport
+    topPosition = Math.max(scrollTop + 20, topPosition);
+    
+    // Make sure the modal doesn't go below the viewport
+    const maxTop = scrollTop + windowHeight - modalHeight - 20;
+    topPosition = Math.min(maxTop, topPosition);
+    
+    orderModal.style.top = topPosition + 'px';
+    document.body.style.overflow = 'hidden';
+    
+    // Reset modal content scroll position to top
+    modalContent.scrollTop = 0;
+    
+    // Add show class after a small delay to trigger animation
+    requestAnimationFrame(() => {
+        orderModal.classList.add('show');
+    });
+}
+
 // Show modal when add order button is clicked
-addOrderBtn.addEventListener('click', () => {
+addOrderBtn.addEventListener('click', (e) => {
     editingOrderId = null;
     orderForm.reset();
     
@@ -116,27 +148,22 @@ addOrderBtn.addEventListener('click', () => {
     document.querySelector('.popup-title').textContent = 'THÊM ĐƠN HÀNG';
     const submitButton = orderForm.querySelector('button[type="submit"]');
     submitButton.textContent = 'Thêm';
-    orderModal.style.display = 'flex';
+    showModalAtPosition(e);
 });
 
 // Close modal functions
 closeBtn.addEventListener('click', () => {
-    orderModal.style.display = 'none';
-    orderForm.reset();
-    editingOrderId = null;
+    hideModal();
 });
 
 cancelBtn.addEventListener('click', () => {
-    orderModal.style.display = 'none';
-    orderForm.reset();
-    editingOrderId = null;
+    hideModal();
 });
 
 // Close notification when clicking outside
 window.addEventListener('click', (e) => {
     if (e.target === notification) {
-        notification.style.display = 'none';
-        orderToDelete = null;
+        hideNotification();
     }
 });
 
@@ -312,7 +339,7 @@ function updatePagination(totalPages) {
         maxPageButtons = 5;
     } else if (screenSize === 'tablet') {
         maxPageButtons = 7;
-    } else {
+        } else {
         maxPageButtons = 10;
     }
     
@@ -437,21 +464,17 @@ function saveOrder(orderData) {
 
 // Function to edit order
 function editOrder(orderId) {
-    // Tìm đơn hàng bằng ID, xử lý cả trường hợp có # và không có #
     const order = orders.find(order => {
-        // Chuẩn hóa cả hai ID để so sánh
         const normalizedOrderId = String(order.id).replace('#', '');
         const normalizedSearchId = String(orderId).replace('#', '');
         return normalizedOrderId === normalizedSearchId;
     });
     
     if (order) {
-        editingOrderId = order.id; // Sử dụng ID gốc từ đơn hàng tìm thấy
+        editingOrderId = order.id;
         
-        // Update modal title
         document.querySelector('.popup-title').textContent = 'SỬA ĐƠN HÀNG';
         
-        // Fill form with order data
         document.getElementById('cakeType').value = order.cakeType || '';
         document.getElementById('customerName').value = order.customerName || '';
         document.getElementById('orderSource').value = order.orderSource || '';
@@ -462,25 +485,91 @@ function editOrder(orderId) {
         document.getElementById('deliveryAddress').value = order.deliveryAddress || '';
         document.getElementById('deliveryTime').value = order.deliveryTime || '';
         
-        // Update submit button text
         const submitButton = orderForm.querySelector('button[type="submit"]');
         submitButton.textContent = 'Cập nhật';
         
-        // Show modal
-        orderModal.style.display = 'flex';
+        // Get the edit button's position
+        const editButton = event.target;
+        const buttonRect = editButton.getBoundingClientRect();
+        const clickEvent = {
+            clientY: buttonRect.top + (buttonRect.height / 2)
+        };
+        showModalAtPosition(clickEvent);
     } else {
         console.error('Không tìm thấy đơn hàng với ID:', orderId);
     }
 }
 
+// Function to hide modal
+function hideModal() {
+    orderModal.classList.remove('show');
+    // Wait for animation to complete before hiding
+    setTimeout(() => {
+        orderModal.style.display = 'none';
+        orderForm.reset();
+        editingOrderId = null;
+        document.body.style.overflow = '';
+    }, 300); // Match animation duration
+}
+
 // Function to delete order
 function deleteOrder(orderId) {
-    // Lưu ID để xóa sau này
     orderToDelete = orderId;
-    notification.style.display = 'flex';
+    const notification = document.getElementById('notification');
+    
+    // Lấy vị trí của nút xóa
+    const deleteButton = event.target;
+    const buttonRect = deleteButton.getBoundingClientRect();
+    
+    // Hiển thị thông báo
+    notification.style.display = 'block';
     notificationMessage.textContent = 'Bạn có chắc chắn muốn xóa đơn hàng này?';
     notificationYes.style.display = 'inline-block';
     notificationNo.style.display = 'inline-block';
+    
+    // Chỉ áp dụng vị trí động cho tablet và mobile
+    if (screenSize !== 'desktop') {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const notificationHeight = notification.offsetHeight;
+        const windowHeight = window.innerHeight;
+        const windowWidth = window.innerWidth;
+        
+        // Tính toán vị trí left để thông báo không vượt quá màn hình
+        let leftPosition = buttonRect.left;
+        const notificationWidth = notification.offsetWidth;
+        if (leftPosition + notificationWidth > windowWidth) {
+            leftPosition = windowWidth - notificationWidth - 10;
+        }
+        if (leftPosition < 10) {
+            leftPosition = 10;
+        }
+        
+        // Tính toán vị trí top để thông báo không vượt quá màn hình
+        let topPosition = buttonRect.top + scrollTop;
+        
+        // Kiểm tra xem thông báo có bị che khuất bởi bottom của viewport không
+        if (topPosition + notificationHeight > scrollTop + windowHeight) {
+            // Nếu bị che, hiển thị thông báo phía trên nút
+            topPosition = buttonRect.top + scrollTop - notificationHeight - 10;
+        }
+        
+        // Áp dụng vị trí
+        notification.style.left = leftPosition + 'px';
+        notification.style.top = topPosition + 'px';
+    }
+}
+
+// Function to hide notification
+function hideNotification() {
+    const notification = document.getElementById('notification');
+    notification.style.display = 'none';
+    orderToDelete = null;
+    
+    // Reset position styles
+    if (screenSize !== 'desktop') {
+        notification.style.left = '';
+        notification.style.top = '';
+    }
 }
 
 // Function to delete order from DB
@@ -521,42 +610,34 @@ function handleSubmit(event) {
 
     if (saveOrder(orderData)) {
         orderForm.reset();
-        orderModal.style.display = 'none';
+        hideModal();
     }
 }
 
-// Handle notification buttons
+// Update notification button event listeners
 notificationYes.addEventListener('click', () => {
     if (orderToDelete !== null) {
         const success = deleteOrderFromDB(orderToDelete);
         
         if (success) {
-            // Kiểm tra nếu trang hiện tại không còn đơn hàng nào và không phải trang đầu tiên
             if (currentPage > 1 && (currentPage - 1) * ordersPerPage >= orders.length) {
                 currentPage--;
             }
             
-            displayOrders(orders); // Refresh the orders list
+            displayOrders(orders);
             notificationMessage.textContent = 'Đã xóa đơn hàng thành công!';
             notificationYes.style.display = 'none';
             notificationNo.style.display = 'none';
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 1500);
+            setTimeout(hideNotification, 1500);
         } else {
             notificationMessage.textContent = 'Có lỗi xảy ra khi xóa đơn hàng!';
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 1500);
+            setTimeout(hideNotification, 1500);
         }
         orderToDelete = null;
     }
 });
 
-notificationNo.addEventListener('click', () => {
-    notification.style.display = 'none';
-    orderToDelete = null;
-});
+notificationNo.addEventListener('click', hideNotification);
 
 // Function to format datetime
 function formatDateTime(dateTimeStr) {
@@ -620,4 +701,4 @@ document.addEventListener('DOMContentLoaded', function() {
             e.target.setCustomValidity("");
         };
     });
-}); 
+});
