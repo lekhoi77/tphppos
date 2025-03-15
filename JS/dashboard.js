@@ -251,6 +251,20 @@ function formatDateTime(datetimeStr) {
     return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
 
+// Function to get status class
+function getStatusClass(status) {
+    switch(status) {
+        case 'Đã đặt':
+            return 'status-pending';
+        case 'Đã giao':
+            return 'status-completed';
+        case 'Hủy':
+            return 'status-cancelled';
+        default:
+            return '';
+    }
+}
+
 // Function to display orders in table
 function displayOrders() {
     orderTableBody.innerHTML = '';
@@ -265,7 +279,7 @@ function displayOrders() {
             <td>${order.date}</td>
             <td>${formatToVND(order.orderPrice)}</td>
             <td>${formatToVND(order.deposit)}</td>
-            <td>${order.orderStatus}</td>
+            <td><span class="${getStatusClass(order.orderStatus)}">${order.orderStatus}</span></td>
             <td>${order.deliveryAddress}</td>
             <td>${formatDateTime(order.deliveryTime)}</td>
             <td>

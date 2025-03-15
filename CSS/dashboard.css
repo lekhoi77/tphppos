@@ -63,7 +63,7 @@ table {
 }
 
 th, td {
-    border-bottom: 1px solid #ddd;
+   
     padding: 15px 10px;
     text-align: center;
     white-space: normal;
@@ -431,4 +431,20 @@ form button.cancel {
         font-size: 12px;
         min-width: 70px;
     }
+}
+
+/* Status Colors */
+.status-pending {
+    color: #ffd700;
+    font-weight: 600;
+}
+
+.status-completed {
+    color: #2ecc71;
+    font-weight: 600;
+}
+
+.status-cancelled {
+    color: #e74c3c;
+    font-weight: 600;
 }
