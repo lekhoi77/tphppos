@@ -7,8 +7,11 @@ let orderToDelete = null;
 let screenSize = getScreenSize();
 
 // Get DOM elements
+const addOrderBtn = document.getElementById('addOrderBtn');
 const orderModal = document.getElementById('orderModal');
 const orderForm = document.getElementById('orderForm');
+const closeBtn = document.querySelector('.close');
+const cancelBtn = document.querySelector('.cancel');
 const notification = document.getElementById('notification');
 const notificationMessage = document.getElementById('notification-message');
 const notificationYes = document.getElementById('notification-yes');
@@ -171,6 +174,118 @@ function showSuccess(message) {
 }
 
 // ... (giữ nguyên các hàm helper khác như formatPrice, formatDateTime, etc.)
+
+// Function to show modal at clicked position
+function showModalAtPosition(clickEvent) {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const clickY = clickEvent.clientY + scrollTop;
+    
+    orderModal.style.display = 'block';
+    const modalContent = orderModal.querySelector('.modal-content');
+    const modalHeight = modalContent.offsetHeight;
+    const windowHeight = window.innerHeight;
+    
+    // Calculate the best position to show the modal
+    let topPosition = clickY - (modalHeight / 2);
+    
+    // Make sure the modal doesn't go above the viewport
+    topPosition = Math.max(scrollTop + 20, topPosition);
+    
+    // Make sure the modal doesn't go below the viewport
+    const maxTop = scrollTop + windowHeight - modalHeight - 20;
+    topPosition = Math.min(maxTop, topPosition);
+    
+    orderModal.style.top = topPosition + 'px';
+    document.body.style.overflow = 'hidden';
+    
+    // Reset modal content scroll position to top
+    modalContent.scrollTop = 0;
+    
+    // Add show class after a small delay to trigger animation
+    requestAnimationFrame(() => {
+        orderModal.classList.add('show');
+    });
+}
+
+// Function to hide modal
+function hideModal() {
+    orderModal.classList.remove('show');
+    // Wait for animation to complete before hiding
+    setTimeout(() => {
+        orderModal.style.display = 'none';
+        orderForm.reset();
+        document.body.style.overflow = '';
+    }, 300); // Match animation duration
+}
+
+// Show modal when add order button is clicked
+addOrderBtn.addEventListener('click', (e) => {
+    // Reset form and prepare for new order
+    orderForm.reset();
+    
+    // Set default delivery time to current date and time
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const defaultDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+    document.getElementById('deliveryTime').value = defaultDateTime;
+    
+    // Update modal title and button text
+    document.querySelector('.popup-title').textContent = 'THÊM ĐƠN HÀNG';
+    const submitButton = orderForm.querySelector('button[type="submit"]');
+    submitButton.textContent = 'Thêm';
+    
+    // Show modal at click position
+    showModalAtPosition(e);
+});
+
+// Close modal when clicking close or cancel button
+closeBtn.addEventListener('click', hideModal);
+cancelBtn.addEventListener('click', hideModal);
+
+// Close modal when clicking outside
+window.addEventListener('click', (e) => {
+    if (e.target === orderModal) {
+        hideModal();
+    }
+});
+
+// Handle form submission
+orderForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(orderForm);
+    const orderData = {
+        orderId: generateOrderId(), // You need to implement this function
+        cakeType: formData.get('cakeType'),
+        customerName: formData.get('customerName'),
+        orderSource: formData.get('orderSource'),
+        orderNotes: formData.get('orderNotes'),
+        orderPrice: parseFloat(formData.get('orderPrice').replace(/[,.]/g, '')),
+        deposit: parseFloat(formData.get('deposit').replace(/[,.]/g, '') || 0),
+        orderStatus: formData.get('orderStatus') || 'Đã đặt',
+        deliveryAddress: formData.get('deliveryAddress'),
+        deliveryTime: formData.get('deliveryTime')
+    };
+
+    try {
+        await addOrder(orderData);
+        hideModal();
+        showSuccess('Đã thêm đơn hàng thành công!');
+    } catch (error) {
+        showError('Không thể thêm đơn hàng: ' + error.message);
+    }
+});
+
+// Function to generate order ID
+function generateOrderId() {
+    const timestamp = Date.now().toString();
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    return `ORD${timestamp}${random}`;
+}
 
 // Export functions for use in other files
 window.addOrder = addOrder;

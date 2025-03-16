@@ -1,11 +1,12 @@
 {
   "name": "tphppos",
   "version": "1.0.0",
-  "description": "Website hỗ trợ nhận đơn hàng của Tiệm Bánh Hạnh Phúc - Cầu Dợi\r  <hr>\r  Demo : https://lekhoi77.github.io/tphppos/",
+  "description": "Tiệm Bánh Hạnh Phúc POS System",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "build": "npm install"
   },
   "repository": {
     "type": "git",
@@ -20,11 +21,11 @@
   "homepage": "https://github.com/lekhoi77/tphppos#readme",
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^16.0.3",
+    "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "mongoose": "^7.0.3"
+    "mongoose": "^8.0.3"
   },
   "devDependencies": {
-    "nodemon": "^2.0.22"
+    "nodemon": "^3.0.2"
   }
 }

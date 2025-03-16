@@ -1,42 +1,31 @@
-const API_URL = 'https://tphppos-production.up.railway.app/api';
+// API base URL - replace with your actual API endpoint
+const API_BASE_URL = 'http://localhost:3000/api';
 
-// Hàm helper để xử lý response
+// Helper function to handle API responses
 const handleResponse = async (response) => {
     if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Có lỗi xảy ra');
+        throw new Error(error.message || 'Something went wrong');
     }
     return response.json();
 };
 
-// API calls cho đơn hàng
+// API functions for orders
 const orderAPI = {
-    // Lấy danh sách đơn hàng có phân trang
-    getOrders: async (page = 1, limit = 10) => {
+    // Get all orders with pagination
+    async getOrders(page = 1, limit = 10) {
         try {
-            const response = await fetch(`${API_URL}/orders?page=${page}&limit=${limit}`);
+            const response = await fetch(`${API_BASE_URL}/orders?page=${page}&limit=${limit}`);
             return handleResponse(response);
         } catch (error) {
-            console.error('Error fetching orders:', error);
             throw error;
         }
     },
 
-    // Lấy đơn hàng theo ID
-    getOrder: async (orderId) => {
+    // Create a new order
+    async createOrder(orderData) {
         try {
-            const response = await fetch(`${API_URL}/orders/${orderId}`);
-            return handleResponse(response);
-        } catch (error) {
-            console.error('Error fetching order:', error);
-            throw error;
-        }
-    },
-
-    // Tạo đơn hàng mới
-    createOrder: async (orderData) => {
-        try {
-            const response = await fetch(`${API_URL}/orders`, {
+            const response = await fetch(`${API_BASE_URL}/orders`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -45,15 +34,14 @@ const orderAPI = {
             });
             return handleResponse(response);
         } catch (error) {
-            console.error('Error creating order:', error);
             throw error;
         }
     },
 
-    // Cập nhật đơn hàng
-    updateOrder: async (orderId, orderData) => {
+    // Update an existing order
+    async updateOrder(orderId, orderData) {
         try {
-            const response = await fetch(`${API_URL}/orders/${orderId}`, {
+            const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -62,20 +50,29 @@ const orderAPI = {
             });
             return handleResponse(response);
         } catch (error) {
-            console.error('Error updating order:', error);
             throw error;
         }
     },
 
-    // Xóa đơn hàng
-    deleteOrder: async (orderId) => {
+    // Delete an order
+    async deleteOrder(orderId) {
         try {
-            const response = await fetch(`${API_URL}/orders/${orderId}`, {
+            const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
                 method: 'DELETE',
             });
             return handleResponse(response);
         } catch (error) {
-            console.error('Error deleting order:', error);
+            throw error;
+        }
+    },
+
+    // Lấy đơn hàng theo ID
+    getOrder: async (orderId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/orders/${orderId}`);
+            return handleResponse(response);
+        } catch (error) {
+            console.error('Error fetching order:', error);
             throw error;
         }
     },
@@ -83,7 +80,7 @@ const orderAPI = {
     // Lấy đơn hàng theo trạng thái
     getOrdersByStatus: async (status, page = 1, limit = 10) => {
         try {
-            const response = await fetch(`${API_URL}/orders/status/${status}?page=${page}&limit=${limit}`);
+            const response = await fetch(`${API_BASE_URL}/orders/status/${status}?page=${page}&limit=${limit}`);
             return handleResponse(response);
         } catch (error) {
             console.error('Error fetching orders by status:', error);
@@ -95,7 +92,7 @@ const orderAPI = {
     getOrdersByDateRange: async (startDate, endDate, page = 1, limit = 10) => {
         try {
             const response = await fetch(
-                `${API_URL}/orders/date-range?startDate=${startDate}&endDate=${endDate}&page=${page}&limit=${limit}`
+                `${API_BASE_URL}/orders/date-range?startDate=${startDate}&endDate=${endDate}&page=${page}&limit=${limit}`
             );
             return handleResponse(response);
         } catch (error) {
