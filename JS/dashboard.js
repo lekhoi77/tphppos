@@ -8,6 +8,7 @@ let orders = [];
 let currentPage = 1;
 const ordersPerPage = 10;
 let orderToDelete = null;
+let lastOrderNumber = 0; // Biến để theo dõi số thứ tự đơn hàng
 
 // Get DOM elements
 const addOrderBtn = document.getElementById('addOrderBtn');
@@ -26,14 +27,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         // Fetch real orders from API
         const response = await orderAPI.getOrders();
-        orders = response;
+        // Sắp xếp đơn hàng theo thời gian tạo, mới nhất lên đầu
+        orders = response.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        // Tìm số thứ tự lớn nhất hiện tại
+        lastOrderNumber = findLastOrderNumber(orders);
+        
         displayOrders(orders);
 
         // Add event listeners
         if (addOrderBtn) {
             addOrderBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                showModalAtPosition(e);
+                showModalAtPosition();
             });
         } else {
             console.error('Add Order button not found');
@@ -56,16 +62,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 e.preventDefault();
                 const formData = {
                     orderId: generateOrderId(),
-                    cakeType: document.getElementById('cakeType').value,
-                    customerName: document.getElementById('customerName').value,
-                    orderSource: document.getElementById('orderSource').value,
-                    orderNotes: document.getElementById('orderNotes').value,
+        cakeType: document.getElementById('cakeType').value,
+        customerName: document.getElementById('customerName').value,
+        orderSource: document.getElementById('orderSource').value,
+        orderNotes: document.getElementById('orderNotes').value,
                     orderPrice: parseFloat(document.getElementById('orderPrice').value.replace(/[,.]/g, '')),
                     deposit: parseFloat(document.getElementById('deposit').value.replace(/[,.]/g, '')) || 0,
-                    orderStatus: document.getElementById('orderStatus').value,
-                    deliveryAddress: document.getElementById('deliveryAddress').value,
-                    deliveryTime: document.getElementById('deliveryTime').value
-                };
+        orderStatus: document.getElementById('orderStatus').value,
+        deliveryAddress: document.getElementById('deliveryAddress').value,
+        deliveryTime: document.getElementById('deliveryTime').value
+    };
 
                 try {
                     await addOrder(formData);
@@ -210,10 +216,27 @@ window.addEventListener('resize', () => {
 });
 
 // Function to show modal at clicked position
-function showModalAtPosition(clickEvent) {
-    orderModal.style.display = 'block';
+function showModalAtPosition() {
+    const modal = document.querySelector('.modal-content');
+    const modalContainer = document.getElementById('orderModal');
     
-    // Reset form and prepare for new order
+    // Tính toán vị trí cuộn hiện tại của trang
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+    
+    // Tính toán vị trí giữa viewport
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    
+    // Đặt modal ở giữa viewport tại vị trí scroll hiện tại
+    const top = scrollTop + (viewportHeight / 2);
+    const left = scrollLeft + (viewportWidth / 2);
+    
+    // Áp dụng vị trí cho modal
+    modal.style.top = `${top}px`;
+    modal.style.left = `${left}px`;
+    
+    // Reset form và chuẩn bị cho đơn hàng mới
     orderForm.reset();
     
     // Set default delivery time
@@ -226,18 +249,29 @@ function showModalAtPosition(clickEvent) {
     const defaultDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
     document.getElementById('deliveryTime').value = defaultDateTime;
     
-    // Show modal with animation
+    // Hiển thị modal và reset scroll position
+    modalContainer.style.display = 'block';
+    
+    // Reset scroll position sau khi modal được hiển thị
     requestAnimationFrame(() => {
-        orderModal.classList.add('show');
+        modal.scrollTop = 0;
+        modalContainer.classList.add('show');
     });
 }
 
 // Function to hide modal
 function hideModal() {
-    orderModal.classList.remove('show');
+    const modalContainer = document.getElementById('orderModal');
+    const modal = document.querySelector('.modal-content');
+    
+    modalContainer.classList.remove('show');
     setTimeout(() => {
-        orderModal.style.display = 'none';
+        modalContainer.style.display = 'none';
         orderForm.reset();
+        // Reset position when hiding modal
+        modal.style.top = '';
+        modal.style.left = '';
+        modal.scrollTop = 0;
     }, 300);
 }
 
@@ -270,15 +304,30 @@ function formatDateTime(dateTime) {
 }
 
 function generateOrderId() {
-    const timestamp = Date.now().toString();
-    const random = Math.random().toString(36).substring(2, 8);
-    return `${timestamp}-${random}`;
+    lastOrderNumber++;
+    return `#${String(lastOrderNumber).padStart(4, '0')}`;
+}
+
+// Helper function to find the last order number
+function findLastOrderNumber(orders) {
+    let maxNumber = 0;
+    orders.forEach(order => {
+        if (order.orderId) {
+            const match = order.orderId.match(/#(\d+)/);
+            if (match) {
+                const number = parseInt(match[1]);
+                maxNumber = Math.max(maxNumber, number);
+            }
+        }
+    });
+    return maxNumber;
 }
 
 // CRUD functions
 async function addOrder(orderData) {
     try {
         const savedOrder = await orderAPI.createOrder(orderData);
+        // Thêm đơn hàng mới vào đầu danh sách
         orders.unshift(savedOrder);
         displayOrders(orders);
         hideModal();
@@ -313,7 +362,7 @@ async function editOrder(orderId) {
         submitButton.textContent = 'Cập nhật';
 
         // Show modal
-        showModalAtPosition({ clientY: window.innerHeight / 2 });
+        showModalAtPosition();
 
         // Update form submit handler
         orderForm.onsubmit = async (e) => {

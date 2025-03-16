@@ -280,22 +280,23 @@ button.add-order span {
 }
 
 .modal-content {
-    position: relative;
+    position: absolute;
     background-color: #fff;
-    margin: 5% auto;
     padding: 20px;
     border-radius: 10px;
     width: 90%;
     max-width: 600px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transform: translateY(-20px);
     opacity: 0;
+    transform: translate(-50%, -50%) scale(0.7);
     transition: all 0.3s ease-in-out;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .modal.show .modal-content {
-    transform: translateY(0);
     opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
 }
 
 .close {
