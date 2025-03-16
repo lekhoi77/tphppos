@@ -22,24 +22,11 @@ const notificationNo = document.getElementById('notification-no');
 const paginationContainer = document.getElementById('pagination');
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Add a sample order for testing
-        const sampleOrder = {
-            _id: 'sample123',
-            orderId: 'TEST-001',
-            cakeType: 'Bánh Kem thường',
-            customerName: 'Khách Hàng Test',
-            orderSource: 'Facebook',
-            orderNotes: 'Đơn hàng test',
-            orderPrice: 350000,
-            deposit: 100000,
-            orderStatus: 'Đã đặt',
-            deliveryAddress: '123 Đường Test',
-            deliveryTime: new Date().toISOString()
-        };
-        
-        orders = [sampleOrder];
+        // Fetch real orders from API
+        const response = await orderAPI.getOrders();
+        orders = response;
         displayOrders(orders);
 
         // Add event listeners
@@ -69,19 +56,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 const formData = {
                     orderId: generateOrderId(),
-        cakeType: document.getElementById('cakeType').value,
-        customerName: document.getElementById('customerName').value,
-        orderSource: document.getElementById('orderSource').value,
-        orderNotes: document.getElementById('orderNotes').value,
+                    cakeType: document.getElementById('cakeType').value,
+                    customerName: document.getElementById('customerName').value,
+                    orderSource: document.getElementById('orderSource').value,
+                    orderNotes: document.getElementById('orderNotes').value,
                     orderPrice: parseFloat(document.getElementById('orderPrice').value.replace(/[,.]/g, '')),
                     deposit: parseFloat(document.getElementById('deposit').value.replace(/[,.]/g, '')) || 0,
-        orderStatus: document.getElementById('orderStatus').value,
-        deliveryAddress: document.getElementById('deliveryAddress').value,
-        deliveryTime: document.getElementById('deliveryTime').value
-    };
+                    orderStatus: document.getElementById('orderStatus').value,
+                    deliveryAddress: document.getElementById('deliveryAddress').value,
+                    deliveryTime: document.getElementById('deliveryTime').value
+                };
 
                 try {
                     await addOrder(formData);
+                    hideModal();
+                    // Refresh orders list
+                    const updatedOrders = await orderAPI.getOrders();
+                    orders = updatedOrders;
+                    displayOrders(orders);
                 } catch (error) {
                     showError('Không thể thêm đơn hàng');
                 }
@@ -104,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     } catch (error) {
         console.error('Error during initialization:', error);
-        showError('Không thể khởi tạo ứng dụng');
+        showError('Không thể tải danh sách đơn hàng');
     }
 });
 
@@ -267,13 +259,14 @@ function showSuccess(message) {
 }
 
 function formatPrice(price) {
-    return price ? price.toLocaleString('vi-VN') + ' đ' : '0 đ';
+    if (!price) return '0 đ';
+    return price.toLocaleString('vi-VN') + ' đ';
 }
 
 function formatDateTime(dateTime) {
     if (!dateTime) return '';
     const date = new Date(dateTime);
-    return date.toLocaleString('vi-VN');
+    return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')} ${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
 }
 
 function generateOrderId() {
