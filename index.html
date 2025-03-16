@@ -33,73 +33,7 @@
               <div class="design_by">thiết kế bởi @lefactuer</div>
             </div>
           </div>
-        </div>
-        <div class="modal" id="orderModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 class="popup-title">THÊM ĐƠN HÀNG</h2>
-                    <span class="close">&times;</span>
-                </div>
-                <form id="orderForm">
-                    <div class="form-group">
-                        <label for="cakeType">Loại bánh:</label>
-                        <input type="text" id="cakeType" name="cakeType" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="customerName">Tên khách hàng:</label>
-                        <input type="text" id="customerName" name="customerName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="orderSource">Kênh:</label>
-                        <select id="orderSource" name="orderSource" required>
-                            <option value="">Chọn kênh</option>
-                            <option value="Facebook">Facebook</option>
-                            <option value="Zalo">Zalo</option>
-                            <option value="Instagram">Instagram</option>
-                            <option value="Trực tiếp">Trực tiếp</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="orderNotes">Nội dung:</label>
-                        <textarea id="orderNotes" name="orderNotes"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="orderPrice">Giá (VNĐ):</label>
-                        <input type="text" id="orderPrice" name="orderPrice" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="deposit">Đã cọc (VNĐ):</label>
-                        <input type="text" id="deposit" name="deposit">
-                    </div>
-                    <div class="form-group">
-                        <label for="orderStatus">Trạng thái:</label>
-                        <select id="orderStatus" name="orderStatus">
-                            <option value="Đã đặt">Đã đặt</option>
-                            <option value="Đã giao">Đã giao</option>
-                            <option value="Hủy">Hủy</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="deliveryAddress">Địa chỉ giao:</label>
-                        <input type="text" id="deliveryAddress" name="deliveryAddress">
-                    </div>
-                    <div class="form-group">
-                        <label for="deliveryTime">Thời gian giao:</label>
-                        <input type="datetime-local" id="deliveryTime" name="deliveryTime" required>
-                    </div>
-                    <div class="form-buttons">
-                        <button type="submit">Thêm</button>
-                        <button type="button" class="cancel">Hủy</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        <div class="header">
-            <h1>QUẢN LÝ ĐƠN HÀNG</h1>
-            <button id="addOrderBtn" class="add-btn">
-                <i class="fas fa-plus"></i> Thêm đơn hàng
-            </button>
-        </div>
+        
         <script>
             function validateLogin() {
                 // Danh sách tài khoản hợp lệ (có thể thay bằng dữ liệu từ database)
