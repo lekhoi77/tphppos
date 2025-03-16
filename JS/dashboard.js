@@ -95,7 +95,7 @@ async function deleteOrderFromDB(orderId) {
     try {
         await orderAPI.deleteOrder(orderId);
         orders = orders.filter(order => order.orderId !== orderId);
-        return true;
+            return true;
     } catch (error) {
         showError('Không thể xóa đơn hàng');
         return false;
