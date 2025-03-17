@@ -62,16 +62,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 e.preventDefault();
                 const formData = {
                     orderId: generateOrderId(),
-        cakeType: document.getElementById('cakeType').value,
-        customerName: document.getElementById('customerName').value,
-        orderSource: document.getElementById('orderSource').value,
-        orderNotes: document.getElementById('orderNotes').value,
+                    cakeType: document.getElementById('cakeType').value,
+                    customerName: document.getElementById('customerName').value,
+                    orderSource: document.getElementById('orderSource').value,
+                    orderNotes: document.getElementById('orderNotes').value,
                     orderPrice: parseFloat(document.getElementById('orderPrice').value.replace(/[,.]/g, '')),
                     deposit: parseFloat(document.getElementById('deposit').value.replace(/[,.]/g, '')) || 0,
-        orderStatus: document.getElementById('orderStatus').value,
-        deliveryAddress: document.getElementById('deliveryAddress').value,
-        deliveryTime: document.getElementById('deliveryTime').value
-    };
+                    orderStatus: document.getElementById('orderStatus').value,
+                    deliveryAddress: document.getElementById('deliveryAddress').value,
+                    deliveryTime: document.getElementById('deliveryTime').value
+                };
 
                 try {
                     await addOrder(formData);
@@ -114,6 +114,9 @@ function displayOrders(orders) {
     if (window.innerWidth <= 1023) {
         // Card view for tablet and mobile
         orders.forEach(order => {
+            // Get the correct ID from the order object
+            const orderId = order.id || order._id;
+            
             const card = document.createElement('tr');
             card.innerHTML = `
                 <div class="order-card">
@@ -156,10 +159,10 @@ function displayOrders(orders) {
                         </div>
                     </div>
                     <div class="order-card-footer">
-                        <button onclick="editOrder('${order._id}')" class="edit-btn">
+                        <button onclick="editOrder('${orderId}')" class="edit-btn">
                             <i class="fas fa-edit"></i> Sửa
                         </button>
-                        <button onclick="deleteOrder('${order._id}')" class="delete-btn">
+                        <button onclick="deleteOrder('${orderId}')" class="delete-btn">
                             <i class="fas fa-trash"></i> Xóa
                         </button>
                     </div>
@@ -170,6 +173,9 @@ function displayOrders(orders) {
     } else {
         // Table view for desktop
         orders.forEach(order => {
+            // Get the correct ID from the order object
+            const orderId = order.id || order._id;
+            
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${order.orderId || ''}</td>
@@ -183,10 +189,10 @@ function displayOrders(orders) {
                 <td>${order.deliveryAddress || ''}</td>
                 <td>${formatDateTime(order.deliveryTime)}</td>
                 <td>
-                    <button onclick="editOrder('${order._id}')" class="edit-btn">
+                    <button onclick="editOrder('${orderId}')" class="edit-btn">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button onclick="deleteOrder('${order._id}')" class="delete-btn">
+                    <button onclick="deleteOrder('${orderId}')" class="delete-btn">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
@@ -339,22 +345,40 @@ async function addOrder(orderData) {
 
 async function editOrder(orderId) {
     try {
-        const order = orders.find(o => o._id === orderId);
-        if (!order) {
-            showError('Không tìm thấy đơn hàng');
-            return;
+        console.log('Editing order with ID:', orderId);
+        
+        // Lấy dữ liệu đơn hàng trực tiếp từ API
+        const orderData = await orderAPI.getOrder(orderId);
+        console.log('Order data received:', orderData);
+
+        if (!orderData) {
+            throw new Error('Không nhận được dữ liệu đơn hàng');
         }
 
+        // Reset form trước khi điền dữ liệu mới
+        orderForm.reset();
+
         // Fill form with order data
-        document.getElementById('cakeType').value = order.cakeType;
-        document.getElementById('customerName').value = order.customerName;
-        document.getElementById('orderSource').value = order.orderSource;
-        document.getElementById('orderNotes').value = order.orderNotes;
-        document.getElementById('orderPrice').value = order.orderPrice.toLocaleString('vi-VN');
-        document.getElementById('deposit').value = order.deposit ? order.deposit.toLocaleString('vi-VN') : '';
-        document.getElementById('orderStatus').value = order.orderStatus;
-        document.getElementById('deliveryAddress').value = order.deliveryAddress;
-        document.getElementById('deliveryTime').value = order.deliveryTime ? new Date(order.deliveryTime).toISOString().slice(0, 16) : '';
+        const formFields = {
+            'cakeType': orderData.cakeType || '',
+            'customerName': orderData.customerName || '',
+            'orderSource': orderData.orderSource || '',
+            'orderNotes': orderData.orderNotes || '',
+            'orderPrice': orderData.orderPrice ? orderData.orderPrice.toLocaleString('vi-VN') : '0',
+            'deposit': orderData.deposit ? orderData.deposit.toLocaleString('vi-VN') : '0',
+            'orderStatus': orderData.orderStatus || 'Đã đặt',
+            'deliveryAddress': orderData.deliveryAddress || '',
+            'deliveryTime': orderData.deliveryTime ? new Date(orderData.deliveryTime).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16)
+        };
+
+        // Điền dữ liệu vào form với kiểm tra null/undefined
+        Object.entries(formFields).forEach(([fieldId, value]) => {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.value = value;
+                console.log(`Setting ${fieldId} to:`, value);
+            }
+        });
 
         // Update modal title and button
         document.querySelector('.popup-title').textContent = 'SỬA ĐƠN HÀNG';
@@ -380,19 +404,22 @@ async function editOrder(orderId) {
             };
 
             try {
-                const updatedOrder = await orderAPI.updateOrder(orderId, formData);
-                const index = orders.findIndex(o => o._id === orderId);
-                if (index !== -1) {
-                    orders[index] = updatedOrder;
-                    displayOrders(orders);
-                }
+                console.log('Updating order with data:', formData);
+                await orderAPI.updateOrder(orderId, formData);
+                
+                // Refresh orders list after update
+                const updatedOrders = await orderAPI.getOrders();
+                orders = updatedOrders;
+                displayOrders(orders);
                 hideModal();
                 showSuccess('Đã cập nhật đơn hàng thành công!');
             } catch (error) {
+                console.error('Error updating order:', error);
                 showError('Không thể cập nhật đơn hàng');
             }
         };
     } catch (error) {
+        console.error('Error in editOrder:', error);
         showError('Không thể tải thông tin đơn hàng');
     }
 }
@@ -401,11 +428,14 @@ async function deleteOrder(orderId) {
     try {
         if (confirm('Bạn có chắc chắn muốn xóa đơn hàng này?')) {
             await orderAPI.deleteOrder(orderId);
-            orders = orders.filter(o => o._id !== orderId);
+            // Refresh orders list after delete
+            const updatedOrders = await orderAPI.getOrders();
+            orders = updatedOrders;
             displayOrders(orders);
             showSuccess('Đã xóa đơn hàng thành công!');
         }
     } catch (error) {
+        console.error('Error deleting order:', error);
         showError('Không thể xóa đơn hàng');
     }
 }

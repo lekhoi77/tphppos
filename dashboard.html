@@ -17,7 +17,15 @@
     
         <main>
             <div class="dashboard_title">DANH SÁCH ĐƠN HÀNG</div>
-            <div class="add-order-container">
+            <div class="add-order-con// Trong sự kiện submit form
+            try {
+                await addOrder(formData);  // addOrder đã có displayOrders
+                hideModal();
+                // Refresh orders list AGAIN - Đây là nguyên nhân tạo ra 2 đơn
+                const updatedOrders = await orderAPI.getOrders();
+                orders = updatedOrders;
+                displayOrders(orders);
+            } catch (error) {...}tainer">
                 <button id="addOrderBtn" class="add-order">
                     <div class="plus-icon">+</div>
                     <span>THÊM ĐƠN HÀNG</span>
