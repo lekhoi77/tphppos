@@ -280,6 +280,7 @@ button.add-order span {
     z-index: 1000;
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
+    overflow: hidden; /* Thêm thuộc tính này */
 }
 
 .modal.show {
@@ -298,7 +299,7 @@ button.add-order span {
     transform: translate(-50%, -50%) scale(0.7);
     transition: all 0.3s ease-in-out;
     max-height: 90vh;
-    overflow-y: auto;
+    overflow-y: auto; /* Cho phép cuộn trong modal-content */
 }
 
 .modal.show .modal-content {
@@ -918,3 +919,7 @@ button.add-order span {
     /* ... rest of mobile styles ... */
 }
 
+/* Thêm class mới để khóa scroll của body khi modal mở */
+body.modal-open {
+    overflow: hidden;
+}

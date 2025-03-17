@@ -304,6 +304,7 @@ function showModalAtPosition() {
     
     // Hiển thị modal và reset scroll position
     modalContainer.style.display = 'block';
+    document.body.classList.add('modal-open'); // Thêm class khi mở modal
     
     // Reset scroll position sau khi modal được hiển thị
     requestAnimationFrame(() => {
@@ -318,6 +319,7 @@ function hideModal() {
     const modal = document.querySelector('.modal-content');
     
     modalContainer.classList.remove('show');
+    document.body.classList.remove('modal-open'); // Xóa class khi đóng modal
     setTimeout(() => {
         modalContainer.style.display = 'none';
         orderForm.reset();
