@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Close modal when clicking outside
         window.addEventListener('click', (e) => {
-            if (e.target === orderModal) {
+            if (e.target === orderModal && window.innerWidth > 1024) {
                 hideModal();
             }
         });

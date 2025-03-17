@@ -39,7 +39,7 @@ body::before {
     border-radius: 10px;
     width: 98%;
     max-width: 1800px;
-    margin: auto;
+    margin: 60px auto 20px; /* Thêm margin-top để tránh che phủ nút */
     z-index: 2;
 }
 
@@ -186,12 +186,19 @@ button {
 }
 
 .add-order-container {
+    position: sticky;
+    top: 0;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 9999;
+    margin: 0;
     display: flex;
     justify-content: flex-start;
-    margin: 20px 0;
-    position: sticky;
-    top: 20px;
-    z-index: 10;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 button.add-order {
@@ -849,5 +856,65 @@ button.add-order span {
         display: flex;
         justify-content: flex-end;
     }
+}
+
+/* Common styles for both tablet and mobile */
+@media screen and (max-width: 1023px) {
+    .add-order-container {
+        position: sticky;
+        top: 0;
+        padding: 10px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .container {
+        padding: 10px 5px;
+    }
+
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+    
+    thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    td {
+        position: relative;
+        padding: 0;
+        text-align: left;
+        border-bottom: none;
+    }
+
+    .order-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .order-card-main {
+        display: grid;
+    }
+
+    .order-card-footer {
+        display: flex;
+        justify-content: flex-end;
+    }
+}
+
+/* Mobile Styles (< 500px) */
+@media screen and (max-width: 499px) {
+    .add-order-container {
+        padding: 8px 10px;
+    }
+
+    .container {
+        padding: 10px 5px;
+    }
+    
+    /* ... rest of mobile styles ... */
 }
 
