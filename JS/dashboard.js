@@ -359,17 +359,17 @@ async function addOrder(orderData) {
     }
 }
 
-async function editOrder(orderId) {
+async function editOrder(mongoId) {
     try {
-        console.log('Editing order with ID:', orderId);
+        console.log('Editing order with MongoDB ID:', mongoId);
         
-        // Lấy dữ liệu đơn hàng từ API
-        const orderData = await orderAPI.getOrder(orderId);
-        console.log('Order data received:', orderData);
+        // Tìm đơn hàng trong danh sách orders hiện tại
+        const orderData = orders.find(order => order._id === mongoId);
+        console.log('Order data found:', orderData);
 
-        if (!orderData || !orderData._id) {
-            console.error('Invalid order data:', orderData);
-            throw new Error('Không nhận được dữ liệu đơn hàng hợp lệ');
+        if (!orderData) {
+            console.error('Order not found with MongoDB ID:', mongoId);
+            throw new Error('Không tìm thấy thông tin đơn hàng');
         }
 
         // Reset form trước khi điền dữ liệu mới
@@ -409,7 +409,7 @@ async function editOrder(orderId) {
         orderForm.onsubmit = async (e) => {
             e.preventDefault();
             const formData = {
-                orderId: orderData.orderId, // Giữ nguyên orderId cũ
+                orderId: orderData.orderId, // Giữ nguyên orderId hiển thị (dạng #xxxx)
                 cakeType: document.getElementById('cakeType').value,
                 customerName: document.getElementById('customerName').value,
                 orderSource: document.getElementById('orderSource').value,
@@ -422,8 +422,11 @@ async function editOrder(orderId) {
             };
 
             try {
-                console.log('Updating order with data:', formData);
-                await orderAPI.updateOrder(orderId, formData);
+                console.log('Updating order with MongoDB ID:', mongoId);
+                console.log('Update data:', formData);
+                
+                // Gọi API update với MongoDB ID
+                await orderAPI.updateOrder(mongoId, formData);
                 
                 // Refresh orders list after update
                 const updatedOrders = await orderAPI.getOrders();

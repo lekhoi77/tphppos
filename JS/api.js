@@ -5,16 +5,12 @@ const API_BASE_URL = 'https://tphppos-production.up.railway.app/api';
 const handleResponse = async (response) => {
     try {
         // Log response details for debugging
-        console.log('Response:', {
-            url: response.url,
-            status: response.status,
-            statusText: response.statusText,
-            headers: Object.fromEntries(response.headers.entries())
-        });
+        console.log('Response status:', response.status);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
         // Try to parse response as text first
         const text = await response.text();
-        console.log('Raw response:', text);
+        console.log('Raw response text:', text);
 
         // Check if response is empty
         if (!text) {
@@ -25,6 +21,7 @@ const handleResponse = async (response) => {
         let data;
         try {
             data = JSON.parse(text);
+            console.log('Parsed JSON data:', data);
         } catch (e) {
             console.error('JSON parse error:', e);
             throw new Error(`Invalid JSON response: ${text.substring(0, 100)}...`);
@@ -37,20 +34,7 @@ const handleResponse = async (response) => {
             throw new Error(errorMessage);
         }
 
-        // Handle different response formats
-        if (data.data) {
-            // If response is wrapped in a data property
-            return data.data;
-        } else if (Array.isArray(data)) {
-            // If response is an array
-            return data;
-        } else if (typeof data === 'object') {
-            // If response is a single object
-            return data;
-        } else {
-            console.error('Unexpected response format:', data);
-            throw new Error('Unexpected response format from server');
-        }
+        return data;
     } catch (error) {
         console.error('Error in handleResponse:', error);
         throw error;
@@ -68,7 +52,9 @@ const orderAPI = {
                     'Accept': 'application/json'
                 }
             });
-            return handleResponse(response);
+            const data = await handleResponse(response);
+            console.log('Fetched orders:', data);
+            return data;
         } catch (error) {
             console.error('Error fetching orders:', error);
             throw error;
@@ -87,7 +73,9 @@ const orderAPI = {
                 },
                 body: JSON.stringify(orderData),
             });
-            return handleResponse(response);
+            const data = await handleResponse(response);
+            console.log('Created order:', data);
+            return data;
         } catch (error) {
             console.error('Error creating order:', error);
             throw error;
@@ -106,7 +94,9 @@ const orderAPI = {
                 },
                 body: JSON.stringify(orderData),
             });
-            return handleResponse(response);
+            const data = await handleResponse(response);
+            console.log('Updated order:', data);
+            return data;
         } catch (error) {
             console.error('Error updating order:', error);
             throw error;
@@ -123,7 +113,9 @@ const orderAPI = {
                     'Accept': 'application/json'
                 }
             });
-            return handleResponse(response);
+            const data = await handleResponse(response);
+            console.log('Deleted order:', data);
+            return data;
         } catch (error) {
             console.error('Error deleting order:', error);
             throw error;
