@@ -376,55 +376,6 @@ function findLastOrderNumber(orders) {
     return maxNumber;
 }
 
-// Function to show notification at modal position
-function showNotificationAtPosition(message, onYes, onNo) {
-    const notificationElement = document.getElementById('notification');
-    const notificationMessage = document.getElementById('notification-message');
-    const notificationYes = document.getElementById('notification-yes');
-    const notificationNo = document.getElementById('notification-no');
-    
-    // Set message
-    notificationMessage.textContent = message;
-    
-    // Calculate position (same as modal)
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-    const viewportHeight = window.innerHeight;
-    const viewportWidth = window.innerWidth;
-    
-    // Position notification at center
-    notificationElement.style.top = `${scrollTop + (viewportHeight / 2)}px`;
-    notificationElement.style.left = `${scrollLeft + (viewportWidth / 2)}px`;
-    
-    // Show notification with animation
-    notificationElement.style.display = 'block';
-    requestAnimationFrame(() => {
-        notificationElement.classList.add('show');
-    });
-    
-    // Setup button handlers
-    notificationYes.onclick = () => {
-        hideNotification();
-        if (onYes) onYes();
-    };
-    
-    notificationNo.onclick = () => {
-        hideNotification();
-        if (onNo) onNo();
-    };
-}
-
-// Function to hide notification
-function hideNotification() {
-    const notification = document.getElementById('notification');
-    notification.classList.remove('show');
-    setTimeout(() => {
-        notification.style.display = 'none';
-        notification.style.top = '';
-        notification.style.left = '';
-    }, 300);
-}
-
 // CRUD functions
 async function editOrder(mongoId) {
     try {
@@ -517,23 +468,16 @@ async function editOrder(mongoId) {
 
 async function deleteOrder(orderId) {
     try {
-        showNotificationAtPosition(
-            'Bạn có chắc chắn muốn xóa đơn hàng này?',
-            async () => {
-                try {
-                    await orderAPI.deleteOrder(orderId);
-                    const updatedOrders = await orderAPI.getOrders();
-                    orders = updatedOrders;
-                    displayOrders(orders);
-                    showSuccess('Đã xóa đơn hàng thành công!');
-                } catch (error) {
-                    console.error('Error deleting order:', error);
-                    showError('Không thể xóa đơn hàng');
-                }
-            }
-        );
+        if (confirm('Bạn có chắc chắn muốn xóa đơn hàng này?')) {
+            await orderAPI.deleteOrder(orderId);
+            // Refresh orders list after delete
+            const updatedOrders = await orderAPI.getOrders();
+            orders = updatedOrders;
+            displayOrders(orders);
+            showSuccess('Đã xóa đơn hàng thành công!');
+        }
     } catch (error) {
-        console.error('Error in deleteOrder:', error);
+        console.error('Error deleting order:', error);
         showError('Không thể xóa đơn hàng');
     }
 }
