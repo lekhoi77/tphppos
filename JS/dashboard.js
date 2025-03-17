@@ -108,21 +108,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Function to display orders
 function displayOrders(orders) {
+    console.log('Displaying orders:', orders);
     const tableBody = document.getElementById('orderTableBody');
     tableBody.innerHTML = '';
+
+    if (!Array.isArray(orders)) {
+        console.error('Orders is not an array:', orders);
+        return;
+    }
 
     if (window.innerWidth <= 1023) {
         // Card view for tablet and mobile
         orders.forEach(order => {
-            // Get the correct ID from the order object
-            const orderId = order.id || order._id;
+            console.log('Processing order:', order);
+            // Luôn sử dụng _id từ MongoDB
+            const orderId = order._id;
+            if (!orderId) {
+                console.error('Order has no _id:', order);
+                return;
+            }
             
             const card = document.createElement('tr');
             card.innerHTML = `
                 <div class="order-card">
                     <div class="order-card-header">
                         <span class="order-id">#${order.orderId || ''}</span>
-                        <div class="order-status ${getStatusClass(order.orderStatus)}">${order.orderStatus || ''}</div>
+                        <div class="order-status ${getStatusClass(order.orderStatus)}">${order.orderStatus || 'Đã đặt'}</div>
                     </div>
                     <div class="order-card-main">
                         <div class="info-group">
@@ -139,11 +150,11 @@ function displayOrders(orders) {
                         </div>
                         <div class="info-group">
                             <span class="info-label">Tiền</span>
-                            <span class="info-value">${formatPrice(order.orderPrice)}</span>
+                            <span class="info-value">${formatPrice(order.orderPrice || 0)}</span>
                         </div>
                         <div class="info-group">
                             <span class="info-label">Cọc</span>
-                            <span class="info-value">${formatPrice(order.deposit)}</span>
+                            <span class="info-value">${formatPrice(order.deposit || 0)}</span>
                         </div>
                         <div class="info-group">
                             <span class="info-label">Địa chỉ</span>
@@ -173,8 +184,13 @@ function displayOrders(orders) {
     } else {
         // Table view for desktop
         orders.forEach(order => {
-            // Get the correct ID from the order object
-            const orderId = order.id || order._id;
+            console.log('Processing order:', order);
+            // Luôn sử dụng _id từ MongoDB
+            const orderId = order._id;
+            if (!orderId) {
+                console.error('Order has no _id:', order);
+                return;
+            }
             
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -183,9 +199,9 @@ function displayOrders(orders) {
                 <td>${order.customerName || ''}</td>
                 <td>${order.orderNotes || ''}</td>
                 <td>${order.orderSource || ''}</td>
-                <td>${formatPrice(order.orderPrice)}</td>
-                <td>${formatPrice(order.deposit)}</td>
-                <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus || ''}</td>
+                <td>${formatPrice(order.orderPrice || 0)}</td>
+                <td>${formatPrice(order.deposit || 0)}</td>
+                <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus || 'Đã đặt'}</td>
                 <td>${order.deliveryAddress || ''}</td>
                 <td>${formatDateTime(order.deliveryTime)}</td>
                 <td>
@@ -347,12 +363,13 @@ async function editOrder(orderId) {
     try {
         console.log('Editing order with ID:', orderId);
         
-        // Lấy dữ liệu đơn hàng trực tiếp từ API
+        // Lấy dữ liệu đơn hàng từ API
         const orderData = await orderAPI.getOrder(orderId);
         console.log('Order data received:', orderData);
 
-        if (!orderData) {
-            throw new Error('Không nhận được dữ liệu đơn hàng');
+        if (!orderData || !orderData._id) {
+            console.error('Invalid order data:', orderData);
+            throw new Error('Không nhận được dữ liệu đơn hàng hợp lệ');
         }
 
         // Reset form trước khi điền dữ liệu mới
@@ -392,6 +409,7 @@ async function editOrder(orderId) {
         orderForm.onsubmit = async (e) => {
             e.preventDefault();
             const formData = {
+                orderId: orderData.orderId, // Giữ nguyên orderId cũ
                 cakeType: document.getElementById('cakeType').value,
                 customerName: document.getElementById('customerName').value,
                 orderSource: document.getElementById('orderSource').value,
