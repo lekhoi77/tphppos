@@ -3,27 +3,42 @@ const API_BASE_URL = 'https://tphppos-production.up.railway.app/api';
 
 // Helper function to handle API responses
 const handleResponse = async (response) => {
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('Invalid response format. Expected JSON.');
-    }
+    try {
+        // Log response details for debugging
+        console.log('Response:', {
+            url: response.url,
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries())
+        });
 
-    if (!response.ok) {
-        try {
-            const error = await response.json();
-            throw new Error(error.message || `HTTP error! status: ${response.status}`);
-        } catch (e) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        // Try to parse response as text first
+        const text = await response.text();
+        console.log('Raw response:', text);
+
+        // Check if response is empty
+        if (!text) {
+            throw new Error('Empty response from server');
         }
-    }
 
-    const data = await response.json();
-    console.log('API Response:', {
-        url: response.url,
-        status: response.status,
-        data: data
-    });
-    return data;
+        // Try to parse as JSON
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            console.error('JSON parse error:', e);
+            throw new Error(`Invalid JSON response: ${text.substring(0, 100)}...`);
+        }
+
+        if (!response.ok) {
+            throw new Error(data.message || `HTTP error! status: ${response.status}`);
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Error in handleResponse:', error);
+        throw error;
+    }
 };
 
 // API functions for orders
@@ -48,6 +63,7 @@ const orderAPI = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify(orderData),
             });
@@ -66,6 +82,7 @@ const orderAPI = {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify(orderData),
             });
@@ -82,6 +99,9 @@ const orderAPI = {
             console.log(`Deleting order ${orderId}`);
             const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
                 method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json'
+                }
             });
             return handleResponse(response);
         } catch (error) {
@@ -94,10 +114,12 @@ const orderAPI = {
     async getOrder(orderId) {
         try {
             console.log(`Fetching order ${orderId}`);
-            const response = await fetch(`${API_BASE_URL}/orders/${orderId}`);
-            const data = await handleResponse(response);
-            console.log('Get order response:', data);
-            return data;
+            const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            return handleResponse(response);
         } catch (error) {
             console.error('Error fetching order:', error);
             throw error;
@@ -108,7 +130,11 @@ const orderAPI = {
     async getOrdersByStatus(status, page = 1, limit = 10) {
         try {
             console.log(`Fetching orders by status: ${status}`);
-            const response = await fetch(`${API_BASE_URL}/orders/status/${status}?page=${page}&limit=${limit}`);
+            const response = await fetch(`${API_BASE_URL}/orders/status/${status}?page=${page}&limit=${limit}`, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
             return handleResponse(response);
         } catch (error) {
             console.error('Error fetching orders by status:', error);
@@ -121,7 +147,12 @@ const orderAPI = {
         try {
             console.log(`Fetching orders by date range: ${startDate} - ${endDate}`);
             const response = await fetch(
-                `${API_BASE_URL}/orders/date-range?startDate=${startDate}&endDate=${endDate}&page=${page}&limit=${limit}`
+                `${API_BASE_URL}/orders/date-range?startDate=${startDate}&endDate=${endDate}&page=${page}&limit=${limit}`,
+                {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                }
             );
             return handleResponse(response);
         } catch (error) {
