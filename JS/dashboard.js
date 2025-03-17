@@ -72,11 +72,48 @@ document.addEventListener('DOMContentLoaded', async () => {
         priceInputs.forEach(id => {
             const input = document.getElementById(id);
             if (input) {
-                input.addEventListener('input', function() {
-                    let value = this.value.replace(/[^0-9]/g, '');
-                    if (value) {
-                        value = parseInt(value, 10).toLocaleString('vi-VN');
-                        this.value = value;
+                input.addEventListener('input', function(e) {
+                    // Lấy vị trí con trỏ hiện tại
+                    const cursorPos = this.selectionStart;
+                    
+                    // Chỉ giữ lại số
+                    let value = this.value.replace(/[^\d]/g, '');
+                    
+                    // Nếu là chuỗi rỗng thì gán 0
+                    if (!value) {
+                        value = '0';
+                    }
+                    
+                    // Format số với dấu phẩy
+                    const formattedValue = parseInt(value, 10).toLocaleString('vi-VN');
+                    
+                    // Cập nhật giá trị
+                    this.value = formattedValue;
+                    
+                    // Tính toán vị trí con trỏ mới
+                    const addedSeparators = formattedValue.length - value.length;
+                    const newPosition = cursorPos + addedSeparators;
+                    
+                    // Đặt lại vị trí con trỏ
+                    this.setSelectionRange(newPosition, newPosition);
+                });
+
+                // Ngăn chặn các ký tự không phải số
+                input.addEventListener('keypress', function(e) {
+                    if (!/[\d]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+                        e.preventDefault();
+                    }
+                });
+
+                // Xử lý khi paste
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+                    const numericValue = pastedData.replace(/[^\d]/g, '');
+                    
+                    if (numericValue) {
+                        const formattedValue = parseInt(numericValue, 10).toLocaleString('vi-VN');
+                        this.value = formattedValue;
                     }
                 });
             }
