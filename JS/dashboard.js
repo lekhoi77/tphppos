@@ -118,6 +118,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
         });
+        
+        // Thêm event listener để xử lý sự kiện cuộn
+        const modalContent = document.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.addEventListener('wheel', function(e) {
+                const scrollTop = this.scrollTop;
+                const scrollHeight = this.scrollHeight;
+                const height = this.clientHeight;
+                
+                // Kiểm tra xem đã cuộn đến đầu hoặc cuối chưa
+                if ((scrollTop === 0 && e.deltaY < 0) || 
+                    (scrollTop + height >= scrollHeight && e.deltaY > 0)) {
+                    e.preventDefault();
+                }
+            });
+        }
     } catch (error) {
         console.error('Error during initialization:', error);
         showError('Không thể tải danh sách đơn hàng');
@@ -304,7 +320,6 @@ function showModalAtPosition() {
     
     // Hiển thị modal và reset scroll position
     modalContainer.style.display = 'block';
-    document.body.classList.add('modal-open'); // Thêm class khi mở modal
     
     // Reset scroll position sau khi modal được hiển thị
     requestAnimationFrame(() => {
@@ -319,15 +334,23 @@ function hideModal() {
     const modal = document.querySelector('.modal-content');
     
     modalContainer.classList.remove('show');
-    document.body.classList.remove('modal-open'); // Xóa class khi đóng modal
+    document.body.classList.remove('modal-open');
+    document.body.style.position = '';
+    document.body.style.width = '';
+    
     setTimeout(() => {
         modalContainer.style.display = 'none';
         orderForm.reset();
-        // Reset position when hiding modal
-        modal.style.top = '';
-        modal.style.left = '';
-        modal.scrollTop = 0;
     }, 300);
+}
+
+function showModal() {
+    const modalContainer = document.getElementById('orderModal');
+    modalContainer.classList.add('show');
+    modalContainer.style.display = 'block';
+    document.body.classList.add('modal-open');
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
 }
 
 // Helper functions

@@ -269,42 +269,67 @@ button.add-order span {
 }
 
 /* Modal styles */
-.modal {
-    display: none;
+body.modal-open {
+    overflow: hidden;
+}
+
+.modal-backdrop {
     position: fixed;
     top: 0;
     left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: 9998;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
     width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
+    height: 100vh;
+    z-index: 9999;
     opacity: 0;
-    transition: opacity 0.3s ease-in-out;
-    overflow: hidden; /* Thêm thuộc tính này */
+    transition: opacity 0.3s ease;
 }
 
 .modal.show {
+    display: flex !important;
     opacity: 1;
 }
 
 .modal-content {
-    position: absolute;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
     width: 90%;
     max-width: 600px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.7);
-    transition: all 0.3s ease-in-out;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     max-height: 90vh;
-    overflow-y: auto; /* Cho phép cuộn trong modal-content */
+    overflow-y: auto;
 }
 
-.modal.show .modal-content {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+.modal-content * {
+    margin: 0;
+    box-sizing: border-box;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .close {
@@ -312,41 +337,61 @@ button.add-order span {
     right: 20px;
     top: 20px;
     font-size: 24px;
-    font-weight: bold;
     color: #666;
     cursor: pointer;
+    transition: color 0.2s;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #f5f5f5;
 }
 
 .close:hover {
-    color: #000;
+    color: #333;
+    background: #eee;
 }
 
 .popup-title {
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 600;
-    margin-bottom: 20px;
-    text-align: center;
     color: #333;
+    margin-bottom: 25px;
+    text-align: center;
 }
 
 #orderForm {
-    display: flex;
-    flex-direction: column;
+    display: grid;
     gap: 15px;
 }
 
 #orderForm label {
     font-weight: 500;
-    color: #333;
+    color: #555;
+    margin-bottom: 4px;
 }
 
 #orderForm input,
 #orderForm select,
 #orderForm textarea {
-    padding: 10px;
+    width: 100%;
+    padding: 12px;
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 8px;
     font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: #f8f8f8;
+}
+
+#orderForm input:focus,
+#orderForm select:focus,
+#orderForm textarea:focus {
+    border-color: #b7454680;
+    box-shadow: 0 0 0 3px rgba(183, 69, 70, 0.1);
+    outline: none;
+    background: white;
 }
 
 #orderForm textarea {
@@ -356,33 +401,60 @@ button.add-order span {
 
 .form-buttons {
     display: flex;
-    justify-content: center;
     gap: 15px;
     margin-top: 20px;
+    justify-content: flex-end;
 }
 
 .form-buttons button {
-    padding: 10px 30px;
+    padding: 12px 24px;
     border: none;
-    border-radius: 5px;
-    cursor: pointer;
+    border-radius: 8px;
     font-weight: 500;
-    transition: all 0.3s ease;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
 }
 
 .form-buttons button[type="submit"] {
-    background-color: #4CAF50;
+    background: #b74546;
     color: white;
 }
 
-.form-buttons button.cancel {
-    background-color: #f44336;
-    color: white;
+.form-buttons button[type="submit"]:hover {
+    background: #a03e3f;
+    transform: translateY(-1px);
+}
+
+.form-buttons .cancel {
+    background: #f5f5f5;
+    color: #666;
+}
+
+.form-buttons .cancel:hover {
+    background: #eee;
+    transform: translateY(-1px);
 }
 
 .required {
-    color: #f44336;
+    color: #b74546;
     margin-left: 3px;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+        margin: 20px;
+    }
+
+    .form-buttons {
+        flex-direction: column;
+    }
+
+    .form-buttons button {
+        width: 100%;
+    }
 }
 
 /* Notification Styles */
@@ -921,5 +993,9 @@ button.add-order span {
 
 /* Thêm class mới để khóa scroll của body khi modal mở */
 body.modal-open {
-    overflow: hidden;
+    overflow: hidden !important;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    touch-action: none; /* Ngăn chặn scroll trên mobile */
 }
