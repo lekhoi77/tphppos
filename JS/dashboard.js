@@ -127,30 +127,89 @@ function displayOrders(orders) {
     tableBody.innerHTML = '';
     console.log('Displaying orders:', orders);
 
-    orders.forEach(order => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${order.orderId || ''}</td>
-            <td>${order.cakeType || ''}</td>
-            <td>${order.customerName || ''}</td>
-            <td>${order.orderNotes || ''}</td>
-            <td>${order.orderSource || ''}</td>
-            <td>${formatPrice(order.orderPrice)}</td>
-            <td>${formatPrice(order.deposit)}</td>
-            <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus || ''}</td>
-            <td>${order.deliveryAddress || ''}</td>
-            <td>${formatDateTime(order.deliveryTime)}</td>
-            <td>
-                <button onclick="editOrder('${order._id}')" class="edit-btn">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button onclick="deleteOrder('${order._id}')" class="delete-btn">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        `;
-        tableBody.appendChild(row);
-    });
+    if (window.innerWidth <= 1023) {
+        // Card view for tablet and mobile
+        orders.forEach(order => {
+            const card = document.createElement('tr');
+            card.innerHTML = `
+                <div class="order-card">
+                    <div class="order-card-header">
+                        <span class="order-id">${order.orderId || ''}</span>
+                        <div class="order-status ${getStatusClass(order.orderStatus)}">${order.orderStatus || ''}</div>
+                    </div>
+                    <div class="order-card-main">
+                        <div class="info-group">
+                            <span class="info-label">Loại bánh</span>
+                            <span class="info-value">${order.cakeType || ''}</span>
+                        </div>
+                        <div class="info-group">
+                            <span class="info-label">Tên khách hàng</span>
+                            <span class="info-value">${order.customerName || ''}</span>
+                        </div>
+                        <div class="info-group">
+                            <span class="info-label">Kênh</span>
+                            <span class="info-value">${order.orderSource || ''}</span>
+                        </div>
+                        <div class="info-group">
+                            <span class="info-label">Tiền</span>
+                            <span class="info-value">${formatPrice(order.orderPrice)}</span>
+                        </div>
+                        <div class="info-group">
+                            <span class="info-label">Cọc</span>
+                            <span class="info-value">${formatPrice(order.deposit)}</span>
+                        </div>
+                        <div class="info-group">
+                            <span class="info-label">Địa chỉ</span>
+                            <span class="info-value">${order.deliveryAddress || ''}</span>
+                        </div>
+                        <div class="info-group">
+                            <span class="info-label">Thời gian giao</span>
+                            <span class="info-value">${formatDateTime(order.deliveryTime)}</span>
+                        </div>
+                        <div class="order-card-notes">
+                            <span class="info-label">Nội dung</span>
+                            <span class="info-value">${order.orderNotes || ''}</span>
+                        </div>
+                    </div>
+                    <div class="order-card-footer">
+                        <button onclick="editOrder('${order._id}')" class="edit-btn">
+                            <i class="fas fa-edit"></i> Sửa
+                        </button>
+                        <button onclick="deleteOrder('${order._id}')" class="delete-btn">
+                            <i class="fas fa-trash"></i> Xóa
+                        </button>
+                    </div>
+                </div>
+            `;
+            tableBody.appendChild(card);
+        });
+    } else {
+        // Table view for desktop
+        orders.forEach(order => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${order.orderId || ''}</td>
+                <td>${order.cakeType || ''}</td>
+                <td>${order.customerName || ''}</td>
+                <td>${order.orderNotes || ''}</td>
+                <td>${order.orderSource || ''}</td>
+                <td>${formatPrice(order.orderPrice)}</td>
+                <td>${formatPrice(order.deposit)}</td>
+                <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus || ''}</td>
+                <td>${order.deliveryAddress || ''}</td>
+                <td>${formatDateTime(order.deliveryTime)}</td>
+                <td>
+                    <button onclick="editOrder('${order._id}')" class="edit-btn">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button onclick="deleteOrder('${order._id}')" class="delete-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
 }
 
 // Helper function to get status class
@@ -294,33 +353,49 @@ async function editOrder(mongoId) {
             throw new Error('Không tìm thấy thông tin đơn hàng');
         }
 
-        // Reset form trước khi điền dữ liệu mới
-        orderForm.reset();
-
-        // Fill form with order data
-        document.getElementById('cakeType').value = orderData.cakeType || '';
-        document.getElementById('customerName').value = orderData.customerName || '';
-        document.getElementById('orderSource').value = orderData.orderSource || '';
-        document.getElementById('orderNotes').value = orderData.orderNotes || '';
-        document.getElementById('orderPrice').value = orderData.orderPrice ? orderData.orderPrice.toLocaleString('vi-VN') : '0';
-        document.getElementById('deposit').value = orderData.deposit ? orderData.deposit.toLocaleString('vi-VN') : '0';
-        document.getElementById('orderStatus').value = orderData.orderStatus || 'Đã đặt';
-        document.getElementById('deliveryAddress').value = orderData.deliveryAddress || '';
-        document.getElementById('deliveryTime').value = orderData.deliveryTime ? new Date(orderData.deliveryTime).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16);
-
-        // Update modal title and button
+        // Update modal title and button first
         document.querySelector('.popup-title').textContent = 'SỬA ĐƠN HÀNG';
         const submitButton = orderForm.querySelector('button[type="submit"]');
         submitButton.textContent = 'Cập nhật';
 
-        // Show modal
+        // Show modal first
         showModalAtPosition();
+
+        // Wait a brief moment for the modal to be visible
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Reset form before filling with new data
+        orderForm.reset();
+
+        // Fill form with order data with error checking
+        const formFields = {
+            'cakeType': orderData.cakeType || '',
+            'customerName': orderData.customerName || '',
+            'orderSource': orderData.orderSource || '',
+            'orderNotes': orderData.orderNotes || '',
+            'orderPrice': orderData.orderPrice ? orderData.orderPrice.toLocaleString('vi-VN') : '0',
+            'deposit': orderData.deposit ? orderData.deposit.toLocaleString('vi-VN') : '0',
+            'orderStatus': orderData.orderStatus || 'Đã đặt',
+            'deliveryAddress': orderData.deliveryAddress || '',
+            'deliveryTime': orderData.deliveryTime ? new Date(orderData.deliveryTime).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16)
+        };
+
+        // Populate each field with error checking
+        for (const [fieldId, value] of Object.entries(formFields)) {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.value = value;
+                console.log(`Set ${fieldId} to:`, value);
+            } else {
+                console.error(`Element not found: ${fieldId}`);
+            }
+        }
 
         // Update form submit handler
         orderForm.onsubmit = async (e) => {
             e.preventDefault();
             const formData = {
-                orderId: orderData.orderId, // Giữ nguyên orderId hiển thị (dạng #xxxx)
+                orderId: orderData.orderId,
                 cakeType: document.getElementById('cakeType').value,
                 customerName: document.getElementById('customerName').value,
                 orderSource: document.getElementById('orderSource').value,
@@ -336,10 +411,8 @@ async function editOrder(mongoId) {
                 console.log('Updating order with MongoDB ID:', mongoId);
                 console.log('Update data:', formData);
                 
-                // Gọi API update với MongoDB ID
                 await orderAPI.updateOrder(mongoId, formData);
                 
-                // Refresh orders list after update
                 const updatedOrders = await orderAPI.getOrders();
                 orders = updatedOrders;
                 displayOrders(orders);
