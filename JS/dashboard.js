@@ -39,10 +39,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (addOrderBtn) {
             addOrderBtn.addEventListener('click', (e) => {
                 e.preventDefault();
+                // Reset form và chuẩn bị cho đơn hàng mới
+                orderForm.reset();
+                document.querySelector('.popup-title').textContent = 'THÊM ĐƠN HÀNG MỚI';
+                const submitButton = orderForm.querySelector('button[type="submit"]');
+                submitButton.textContent = 'Thêm';
+
+                // Set default delivery time
+                const now = new Date();
+                document.getElementById('deliveryTime').value = now.toISOString().slice(0, 16);
+
+                // Reset form submit handler
+                orderForm.onsubmit = handleAddOrder;
+                
                 showModalAtPosition();
             });
-        } else {
-            console.error('Add Order button not found');
         }
 
         // Close modal when clicking close or cancel button
@@ -55,36 +66,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 hideModal();
             }
         });
-
-        // Handle form submission
-        if (orderForm) {
-            orderForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const formData = {
-                    orderId: generateOrderId(),
-                    cakeType: document.getElementById('cakeType').value,
-                    customerName: document.getElementById('customerName').value,
-                    orderSource: document.getElementById('orderSource').value,
-                    orderNotes: document.getElementById('orderNotes').value,
-                    orderPrice: parseFloat(document.getElementById('orderPrice').value.replace(/[,.]/g, '')),
-                    deposit: parseFloat(document.getElementById('deposit').value.replace(/[,.]/g, '')) || 0,
-                    orderStatus: document.getElementById('orderStatus').value,
-                    deliveryAddress: document.getElementById('deliveryAddress').value,
-                    deliveryTime: document.getElementById('deliveryTime').value
-                };
-
-                try {
-                    await addOrder(formData);
-                    hideModal();
-                    // Refresh orders list
-                    const updatedOrders = await orderAPI.getOrders();
-                    orders = updatedOrders;
-                    displayOrders(orders);
-                } catch (error) {
-                    showError('Không thể thêm đơn hàng');
-                }
-            });
-        }
 
         // Format price inputs
         const priceInputs = ['orderPrice', 'deposit'];
@@ -106,116 +87,70 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+// Handle add order form submission
+async function handleAddOrder(e) {
+    e.preventDefault();
+    const formData = {
+        orderId: generateOrderId(),
+        cakeType: document.getElementById('cakeType').value,
+        customerName: document.getElementById('customerName').value,
+        orderSource: document.getElementById('orderSource').value,
+        orderNotes: document.getElementById('orderNotes').value,
+        orderPrice: parseFloat(document.getElementById('orderPrice').value.replace(/[,.]/g, '')),
+        deposit: parseFloat(document.getElementById('deposit').value.replace(/[,.]/g, '')) || 0,
+        orderStatus: document.getElementById('orderStatus').value,
+        deliveryAddress: document.getElementById('deliveryAddress').value,
+        deliveryTime: document.getElementById('deliveryTime').value
+    };
+
+    try {
+        console.log('Creating new order with data:', formData);
+        const savedOrder = await orderAPI.createOrder(formData);
+        orders.unshift(savedOrder);
+        displayOrders(orders);
+        hideModal();
+        showSuccess('Đã thêm đơn hàng thành công!');
+    } catch (error) {
+        console.error('Error creating order:', error);
+        showError('Không thể thêm đơn hàng');
+    }
+}
+
 // Function to display orders
 function displayOrders(orders) {
-    console.log('Displaying orders:', orders);
     const tableBody = document.getElementById('orderTableBody');
-    tableBody.innerHTML = '';
-
-    if (!Array.isArray(orders)) {
-        console.error('Orders is not an array:', orders);
+    if (!tableBody) {
+        console.error('Table body element not found');
         return;
     }
+    
+    tableBody.innerHTML = '';
+    console.log('Displaying orders:', orders);
 
-    if (window.innerWidth <= 1023) {
-        // Card view for tablet and mobile
-        orders.forEach(order => {
-            console.log('Processing order:', order);
-            // Luôn sử dụng _id từ MongoDB
-            const orderId = order._id;
-            if (!orderId) {
-                console.error('Order has no _id:', order);
-                return;
-            }
-            
-            const card = document.createElement('tr');
-            card.innerHTML = `
-                <div class="order-card">
-                    <div class="order-card-header">
-                        <span class="order-id">#${order.orderId || ''}</span>
-                        <div class="order-status ${getStatusClass(order.orderStatus)}">${order.orderStatus || 'Đã đặt'}</div>
-                    </div>
-                    <div class="order-card-main">
-                        <div class="info-group">
-                            <span class="info-label">Loại bánh</span>
-                            <span class="info-value">${order.cakeType || ''}</span>
-                        </div>
-                        <div class="info-group">
-                            <span class="info-label">Tên khách hàng</span>
-                            <span class="info-value">${order.customerName || ''}</span>
-                        </div>
-                        <div class="info-group">
-                            <span class="info-label">Kênh</span>
-                            <span class="info-value">${order.orderSource || ''}</span>
-                        </div>
-                        <div class="info-group">
-                            <span class="info-label">Tiền</span>
-                            <span class="info-value">${formatPrice(order.orderPrice || 0)}</span>
-                        </div>
-                        <div class="info-group">
-                            <span class="info-label">Cọc</span>
-                            <span class="info-value">${formatPrice(order.deposit || 0)}</span>
-                        </div>
-                        <div class="info-group">
-                            <span class="info-label">Địa chỉ</span>
-                            <span class="info-value">${order.deliveryAddress || ''}</span>
-                        </div>
-                        <div class="info-group">
-                            <span class="info-label">Thời gian giao</span>
-                            <span class="info-value">${formatDateTime(order.deliveryTime)}</span>
-                        </div>
-                        <div class="order-card-notes">
-                            <span class="info-label">Nội dung</span>
-                            <span class="info-value">${order.orderNotes || ''}</span>
-                        </div>
-                    </div>
-                    <div class="order-card-footer">
-                        <button onclick="editOrder('${orderId}')" class="edit-btn">
-                            <i class="fas fa-edit"></i> Sửa
-                        </button>
-                        <button onclick="deleteOrder('${orderId}')" class="delete-btn">
-                            <i class="fas fa-trash"></i> Xóa
-                        </button>
-                    </div>
-                </div>
-            `;
-            tableBody.appendChild(card);
-        });
-    } else {
-        // Table view for desktop
-        orders.forEach(order => {
-            console.log('Processing order:', order);
-            // Luôn sử dụng _id từ MongoDB
-            const orderId = order._id;
-            if (!orderId) {
-                console.error('Order has no _id:', order);
-                return;
-            }
-            
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${order.orderId || ''}</td>
-                <td>${order.cakeType || ''}</td>
-                <td>${order.customerName || ''}</td>
-                <td>${order.orderNotes || ''}</td>
-                <td>${order.orderSource || ''}</td>
-                <td>${formatPrice(order.orderPrice || 0)}</td>
-                <td>${formatPrice(order.deposit || 0)}</td>
-                <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus || 'Đã đặt'}</td>
-                <td>${order.deliveryAddress || ''}</td>
-                <td>${formatDateTime(order.deliveryTime)}</td>
-                <td>
-                    <button onclick="editOrder('${orderId}')" class="edit-btn">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="deleteOrder('${orderId}')" class="delete-btn">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            `;
-            tableBody.appendChild(row);
-        });
-    }
+    orders.forEach(order => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${order.orderId || ''}</td>
+            <td>${order.cakeType || ''}</td>
+            <td>${order.customerName || ''}</td>
+            <td>${order.orderNotes || ''}</td>
+            <td>${order.orderSource || ''}</td>
+            <td>${formatPrice(order.orderPrice)}</td>
+            <td>${formatPrice(order.deposit)}</td>
+            <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus || ''}</td>
+            <td>${order.deliveryAddress || ''}</td>
+            <td>${formatDateTime(order.deliveryTime)}</td>
+            <td>
+                <button onclick="editOrder('${order._id}')" class="edit-btn">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button onclick="deleteOrder('${order._id}')" class="delete-btn">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
 }
 
 // Helper function to get status class
@@ -346,19 +281,6 @@ function findLastOrderNumber(orders) {
 }
 
 // CRUD functions
-async function addOrder(orderData) {
-    try {
-        const savedOrder = await orderAPI.createOrder(orderData);
-        // Thêm đơn hàng mới vào đầu danh sách
-        orders.unshift(savedOrder);
-        displayOrders(orders);
-        hideModal();
-        showSuccess('Đã thêm đơn hàng thành công!');
-    } catch (error) {
-        showError('Không thể thêm đơn hàng');
-    }
-}
-
 async function editOrder(mongoId) {
     try {
         console.log('Editing order with MongoDB ID:', mongoId);
@@ -376,26 +298,15 @@ async function editOrder(mongoId) {
         orderForm.reset();
 
         // Fill form with order data
-        const formFields = {
-            'cakeType': orderData.cakeType || '',
-            'customerName': orderData.customerName || '',
-            'orderSource': orderData.orderSource || '',
-            'orderNotes': orderData.orderNotes || '',
-            'orderPrice': orderData.orderPrice ? orderData.orderPrice.toLocaleString('vi-VN') : '0',
-            'deposit': orderData.deposit ? orderData.deposit.toLocaleString('vi-VN') : '0',
-            'orderStatus': orderData.orderStatus || 'Đã đặt',
-            'deliveryAddress': orderData.deliveryAddress || '',
-            'deliveryTime': orderData.deliveryTime ? new Date(orderData.deliveryTime).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16)
-        };
-
-        // Điền dữ liệu vào form với kiểm tra null/undefined
-        Object.entries(formFields).forEach(([fieldId, value]) => {
-            const element = document.getElementById(fieldId);
-            if (element) {
-                element.value = value;
-                console.log(`Setting ${fieldId} to:`, value);
-            }
-        });
+        document.getElementById('cakeType').value = orderData.cakeType || '';
+        document.getElementById('customerName').value = orderData.customerName || '';
+        document.getElementById('orderSource').value = orderData.orderSource || '';
+        document.getElementById('orderNotes').value = orderData.orderNotes || '';
+        document.getElementById('orderPrice').value = orderData.orderPrice ? orderData.orderPrice.toLocaleString('vi-VN') : '0';
+        document.getElementById('deposit').value = orderData.deposit ? orderData.deposit.toLocaleString('vi-VN') : '0';
+        document.getElementById('orderStatus').value = orderData.orderStatus || 'Đã đặt';
+        document.getElementById('deliveryAddress').value = orderData.deliveryAddress || '';
+        document.getElementById('deliveryTime').value = orderData.deliveryTime ? new Date(orderData.deliveryTime).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16);
 
         // Update modal title and button
         document.querySelector('.popup-title').textContent = 'SỬA ĐƠN HÀNG';
