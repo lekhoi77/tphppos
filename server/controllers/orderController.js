@@ -1,4 +1,32 @@
 const Order = require('../models/Order');
+const TelegramBot = require('node-telegram-bot-api');
+
+const token = '7255950953:AAEqjvhAPS7TTHDu0OgkrDih5Vx8hJ5Mcn0';
+const chatId = '1002606332405';
+const bot = new TelegramBot(token, { polling: false });
+
+const sendOrderNotification = async (orderData) => {
+    const message = `
+🎂 *ĐƠN HÀNG MỚI*
+
+📝 *Mã đơn:* ${orderData.orderID}
+🍰 *Loại bánh:* ${orderData.cakeType}
+👤 *Khách hàng:* ${orderData.customerName}
+📱 *Nguồn:* ${orderData.orderSource}
+📝 *Nội dung:* ${orderData.orderNotes}
+💰 *Tổng tiền:* ${orderData.orderPrice}
+💵 *Tiền cọc:* ${orderData.deposit}
+📍 *Địa chỉ:* ${orderData.deliveryAddress}
+🕒 *Thời gian giao:* ${orderData.deliveryTime}
+`;
+
+    try {
+        await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+        console.log('Telegram notification sent successfully');
+    } catch (error) {
+        console.error('Error sending Telegram notification:', error);
+    }
+};
 
 // Get all orders with pagination
 exports.getOrders = async (req, res) => {
@@ -43,6 +71,20 @@ exports.createOrder = async (req, res) => {
     try {
         const order = new Order(req.body);
         const savedOrder = await order.save();
+        
+        // Send Telegram notification
+        await sendOrderNotification({
+            orderID: savedOrder.orderId,
+            cakeType: savedOrder.cakeType,
+            customerName: savedOrder.customerName,
+            orderSource: savedOrder.orderSource,
+            orderNotes: savedOrder.orderNotes,
+            orderPrice: savedOrder.orderPrice,
+            deposit: savedOrder.deposit,
+            deliveryAddress: savedOrder.deliveryAddress,
+            deliveryTime: savedOrder.deliveryTime
+        });
+
         res.status(201).json(savedOrder);
     } catch (error) {
         res.status(400).json({ message: error.message });
