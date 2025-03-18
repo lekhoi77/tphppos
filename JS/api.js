@@ -54,7 +54,18 @@ const orderAPI = {
             });
             const data = await handleResponse(response);
             console.log('Fetched orders:', data);
-            return data;
+            
+            // Kiểm tra cấu trúc dữ liệu trả về
+            if (data.orders && Array.isArray(data.orders)) {
+                console.log('Detected paginated response structure');
+                return data.orders; // Trả về mảng orders nếu dữ liệu có cấu trúc phân trang
+            } else if (Array.isArray(data)) {
+                console.log('Detected array response structure');
+                return data; // Trả về trực tiếp nếu dữ liệu là mảng
+            } else {
+                console.warn('Unexpected data structure:', data);
+                return Array.isArray(data) ? data : (data.orders || []);
+            }
         } catch (error) {
             console.error('Error fetching orders:', error);
             throw error;
@@ -147,7 +158,9 @@ const orderAPI = {
                     'Accept': 'application/json'
                 }
             });
-            return handleResponse(response);
+            const data = await handleResponse(response);
+            // Xử lý cấu trúc dữ liệu trả về
+            return data.orders || data;
         } catch (error) {
             console.error('Error fetching orders by status:', error);
             throw error;
@@ -166,7 +179,9 @@ const orderAPI = {
                     }
                 }
             );
-            return handleResponse(response);
+            const data = await handleResponse(response);
+            // Xử lý cấu trúc dữ liệu trả về
+            return data.orders || data;
         } catch (error) {
             console.error('Error fetching orders by date range:', error);
             throw error;
@@ -174,4 +189,4 @@ const orderAPI = {
     },
 };
 
-export default orderAPI; 
+export default orderAPI;
