@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/orderController');
 
+// Test Telegram bot
+router.get('/test-telegram', orderController.testTelegramBot);
+
 // Get all orders with pagination
 router.get('/', orderController.getOrders);
 
@@ -23,4 +26,4 @@ router.put('/:orderId', orderController.updateOrder);
 // Delete order
 router.delete('/:orderId', orderController.deleteOrder);
 
-module.exports = router; 
+module.exports = router;

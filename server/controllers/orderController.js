@@ -1,8 +1,8 @@
 const Order = require('../models/Order');
 const TelegramBot = require('node-telegram-bot-api');
 
-const token = '7255950953:AAEqjvhAPS7TTHDu0OgkrDih5Vx8hJ5Mcn0';
-const chatId = '-1002606332405';
+const token = process.env.TELEGRAM_BOT_TOKEN;
+const chatId = process.env.TELEGRAM_CHAT_ID;
 const bot = new TelegramBot(token, { polling: false });
 
 // Test bot connection
@@ -204,4 +204,24 @@ exports.getOrdersByDateRange = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-}; 
+};
+
+// Thêm route test bot
+exports.testTelegramBot = async (req, res) => {
+    try {
+        console.log('🤖 Đang test kết nối Telegram bot...');
+        console.log('Token:', token);
+        console.log('ChatID:', chatId);
+        await bot.sendMessage(chatId, '🔄 Bot đang hoạt động - Test message');
+        console.log('✅ Test bot thành công!');
+        res.json({ success: true, message: 'Đã gửi tin nhắn test thành công!' });
+    } catch (error) {
+        console.error('❌ Lỗi kết nối bot:', error.message);
+        console.error('Chi tiết lỗi:', JSON.stringify(error, null, 2));
+        res.status(500).json({ 
+            success: false, 
+            error: error.message,
+            details: JSON.stringify(error, null, 2)
+        });
+    }
+};
