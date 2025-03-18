@@ -22,17 +22,25 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-// Chuỗi kết nối MongoDB - sử dụng public URL để kết nối từ bên ngoài Railway
-const mongoURI = 'mongodb://mongo:rKpOfYSAoyagVXMMWIncdgzdZnWJMYzv@ballast.proxy.rlwy.net:55251';
-console.log('Connecting to MongoDB with URI:', mongoURI);
+// Chuỗi kết nối MongoDB - thử kết nối internal trước, nếu không được thì dùng public URL
+const MONGO_URL = 'mongodb://mongo:rKpOfYSAoyagVXMMWIncdgzdZnWJMYzv@mongodb.railway.internal:27017';
+const MONGO_PUBLIC_URL = 'mongodb://mongo:rKpOfYSAoyagVXMMWIncdgzdZnWJMYzv@ballast.proxy.rlwy.net:55251';
 
-// Connect to MongoDB
-mongoose.connect(mongoURI)
-  .then(() => console.log('✅ Connected to MongoDB successfully'))
-  .catch(err => {
-    console.error('❌ MongoDB connection error:', err);
-    console.error('Connection string used:', mongoURI);
-  });
+console.log('Attempting to connect to MongoDB...');
+
+// Try internal URL first, then fallback to public URL
+mongoose.connect(MONGO_URL)
+    .catch(err => {
+        console.log('Failed to connect using internal URL, trying public URL...');
+        return mongoose.connect(MONGO_PUBLIC_URL);
+    })
+    .then(() => {
+        console.log('✅ Connected to MongoDB successfully');
+    })
+    .catch(err => {
+        console.error('❌ MongoDB connection error:', err);
+        console.error('Failed to connect using both internal and public URLs');
+    });
 
 // Root route
 app.get('/', (req, res) => {

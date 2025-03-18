@@ -171,11 +171,36 @@ exports.updateOrder = async (req, res) => {
 
 exports.deleteOrder = async (req, res) => {
     try {
+        console.log('Attempting to delete order with ID:', req.params.orderId);
+        
+        // Validate orderId
+        if (!req.params.orderId) {
+            console.error('No orderId provided');
+            return res.status(400).json({ message: 'ID đơn hàng không được cung cấp' });
+        }
+
+        // First try to find the order
+        const orderExists = await Order.findOne({ orderId: req.params.orderId });
+        if (!orderExists) {
+            console.error('Order not found:', req.params.orderId);
+            return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
+        }
+
+        // Delete the order
         const order = await Order.findOneAndDelete({ orderId: req.params.orderId });
-        if (!order) return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
-        res.json({ message: 'Đã xóa đơn hàng' });
+        console.log('Successfully deleted order:', order);
+        
+        res.status(200).json({ 
+            success: true,
+            message: 'Đã xóa đơn hàng thành công',
+            deletedOrder: order
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error in deleteOrder:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Lỗi khi xóa đơn hàng: ' + error.message 
+        });
     }
 };
 

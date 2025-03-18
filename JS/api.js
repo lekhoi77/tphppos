@@ -117,13 +117,30 @@ const orderAPI = {
     // Delete an order
     async deleteOrder(orderId) {
         try {
+            if (!orderId) {
+                throw new Error('orderId is required');
+            }
+            
             console.log(`Deleting order ${orderId}`);
-            const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
+            // Ensure orderId is properly included in URL
+            const url = `${API_BASE_URL}/orders/${encodeURIComponent(orderId)}`;
+            console.log('Delete URL:', url);
+            
+            const response = await fetch(url, {
                 method: 'DELETE',
                 headers: {
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
                 }
             });
+            
+            // Check if response is ok before trying to parse JSON
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Server error response:', errorText);
+                throw new Error(`Server error: ${response.status}`);
+            }
+            
             const data = await handleResponse(response);
             console.log('Deleted order:', data);
             return data;

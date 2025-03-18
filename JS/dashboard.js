@@ -203,22 +203,6 @@ function displayOrders(orders) {
                             <span class="info-label">Kênh</span>
                             <span class="info-value">${order.orderSource || ''}</span>
                         </div>
-                        <div class="info-group">
-                            <span class="info-label">Tiền</span>
-                            <span class="info-value">${formatPrice(order.orderPrice)}</span>
-                        </div>
-                        <div class="info-group">
-                            <span class="info-label">Cọc</span>
-                            <span class="info-value">${formatPrice(order.deposit)}</span>
-                        </div>
-                        <div class="info-group">
-                            <span class="info-label">Địa chỉ</span>
-                            <span class="info-value">${order.deliveryAddress || ''}</span>
-                        </div>
-                        <div class="info-group">
-                            <span class="info-label">Thời gian giao</span>
-                            <span class="info-value">${formatDateTime(order.deliveryTime)}</span>
-                        </div>
                         <div class="order-card-notes">
                             <span class="info-label">Nội dung</span>
                             <span class="info-value">${order.orderNotes || ''}</span>
@@ -228,7 +212,7 @@ function displayOrders(orders) {
                         <button onclick="editOrder('${order._id}')" class="edit-btn">
                             <i class="fas fa-edit"></i> Sửa
                         </button>
-                        <button onclick="deleteOrder('${order._id}')" class="delete-btn">
+                        <button onclick="deleteOrder('${order.orderId}')" class="delete-btn" data-orderid="${order.orderId}">
                             <i class="fas fa-trash"></i> Xóa
                         </button>
                     </div>
@@ -246,16 +230,16 @@ function displayOrders(orders) {
                 <td>${order.customerName || ''}</td>
                 <td>${order.orderNotes || ''}</td>
                 <td>${order.orderSource || ''}</td>
-                <td>${formatPrice(order.orderPrice)}</td>
-                <td>${formatPrice(order.deposit)}</td>
-                <td class="${getStatusClass(order.orderStatus)}">${order.orderStatus || ''}</td>
+                <td>${formatPrice(order.orderPrice) || ''}</td>
+                <td>${formatPrice(order.deposit) || ''}</td>
+                <td><div class="status ${getStatusClass(order.orderStatus)}">${order.orderStatus || ''}</div></td>
                 <td>${order.deliveryAddress || ''}</td>
-                <td>${formatDateTime(order.deliveryTime)}</td>
-                <td>
+                <td>${order.deliveryTime ? formatDateTime(order.deliveryTime) : ''}</td>
+                <td class="actions">
                     <button onclick="editOrder('${order._id}')" class="edit-btn">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button onclick="deleteOrder('${order._id}')" class="delete-btn">
+                    <button onclick="deleteOrder('${order.orderId}')" class="delete-btn" data-orderid="${order.orderId}">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
@@ -493,16 +477,42 @@ async function editOrder(mongoId) {
 
 async function deleteOrder(orderId) {
     try {
-        if (confirm('Bạn có chắc chắn muốn xóa đơn hàng này?')) {
-            await orderAPI.deleteOrder(orderId);
-            // Refresh orders list after delete
-            const updatedOrders = await orderAPI.getOrders();
-            orders = updatedOrders;
+        if (!orderId) {
+            showError('Không tìm thấy ID đơn hàng');
+            return;
+        }
+
+        // Show confirmation dialog
+        const confirmed = confirm('Bạn có chắc chắn muốn xóa đơn hàng này?');
+        if (!confirmed) return;
+
+        // Show loading state
+        const deleteButton = document.querySelector(`button[data-orderid="${orderId}"]`);
+        if (deleteButton) {
+            deleteButton.disabled = true;
+            deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xóa...';
+        }
+
+        console.log('Deleting order:', orderId);
+        const result = await orderAPI.deleteOrder(orderId);
+        
+        if (result && result.success) {
+            // Remove the order from the local array
+            orders = orders.filter(order => order.orderId !== orderId);
             displayOrders(orders);
             showSuccess('Đã xóa đơn hàng thành công!');
+        } else {
+            throw new Error(result?.message || 'Không thể xóa đơn hàng');
         }
     } catch (error) {
         console.error('Error deleting order:', error);
-        showError('Không thể xóa đơn hàng');
+        showError(`Lỗi khi xóa đơn hàng: ${error.message}`);
+        
+        // Re-enable delete button if it exists
+        const deleteButton = document.querySelector(`button[data-orderid="${orderId}"]`);
+        if (deleteButton) {
+            deleteButton.disabled = false;
+            deleteButton.innerHTML = '<i class="fas fa-trash"></i> Xóa';
+        }
     }
 }
