@@ -75,8 +75,8 @@ const sendOrderNotification = async (orderData) => {
         }
         
         // Xác định trạng thái và màu sắc tương ứng
-        const getStatusEmoji = (status) => {
-            switch(status) {
+        const getStatusEmoji = (orderStatus) => {
+            switch(orderStatus) {
                 case 'Hủy':
                     return '🔴';
                 case 'Đã giao':
