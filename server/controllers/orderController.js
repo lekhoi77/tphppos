@@ -5,6 +5,18 @@ const token = '7255950953:AAEqjvhAPS7TTHDu0OgkrDih5Vx8hJ5Mcn0';
 const chatId = '1002606332405';
 const bot = new TelegramBot(token, { polling: false });
 
+// Test bot connection
+(async () => {
+    try {
+        console.log('🤖 Đang test kết nối Telegram bot...');
+        await bot.sendMessage(chatId, '🔄 Bot đang hoạt động - Test message');
+        console.log('✅ Test bot thành công!');
+    } catch (error) {
+        console.error('❌ Lỗi kết nối bot:', error.message);
+        console.error('Chi tiết lỗi:', JSON.stringify(error, null, 2));
+    }
+})();
+
 const sendOrderNotification = async (orderData) => {
     console.log('Bắt đầu gửi thông báo Telegram cho đơn hàng:', orderData.orderID);
     const message = `
