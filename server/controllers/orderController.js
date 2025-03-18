@@ -7,8 +7,8 @@ console.log('TELEGRAM_BOT_TOKEN:', process.env.TELEGRAM_BOT_TOKEN);
 console.log('TELEGRAM_CHAT_ID:', process.env.TELEGRAM_CHAT_ID);
 
 // Lấy token và chatId từ biến môi trường
-const token = process.env.TELEGRAM_BOT_TOKEN;
-const chatId = process.env.TELEGRAM_CHAT_ID;
+const token = '7255950953:AAGWrNHB4uyOmJHK2UTNVBGgr7GzMl0MNZQ'; // Sử dụng token trực tiếp thay vì lấy từ biến môi trường
+const chatId = '-1002606332405'; // Sử dụng chatId trực tiếp thay vì lấy từ biến môi trường
 
 // Kiểm tra token và chatId
 if (!token || !chatId) {
@@ -17,6 +17,8 @@ if (!token || !chatId) {
     console.error('ChatID:', chatId);
 } else {
     console.log('✅ Telegram configuration loaded successfully');
+    console.log('Token (trực tiếp):', token);
+    console.log('ChatID (trực tiếp):', chatId);
 }
 
 // Khởi tạo bot với token
@@ -40,7 +42,13 @@ const bot = new TelegramBot(token, { polling: false });
 })();
 
 const sendOrderNotification = async (orderData) => {
-    console.log('Bắt đầu gửi thông báo Telegram cho đơn hàng:', orderData.orderId || orderData._id);
+    console.log('=== BẮT ĐẦU GỬI THÔNG BÁO TELEGRAM ===');
+    console.log('Dữ liệu đơn hàng nhận được:', typeof orderData, orderData ? 'Có dữ liệu' : 'Không có dữ liệu');
+    
+    if (!orderData) {
+        console.error('❌ Lỗi: Không có dữ liệu đơn hàng để gửi thông báo');
+        return false;
+    }
     
     try {
         // Kiểm tra lại token và chatId
@@ -52,10 +60,19 @@ const sendOrderNotification = async (orderData) => {
         }
         
         // Kiểm tra dữ liệu đơn hàng
-        console.log('Dữ liệu đơn hàng:', JSON.stringify(orderData));
+        console.log('OrderID:', orderData.orderId);
+        console.log('_id:', orderData._id);
+        console.log('Các trường của đơn hàng:', Object.keys(orderData));
         
         // Xử lý dữ liệu đơn hàng - đảm bảo có tất cả các trường cần thiết
-        const orderDataObj = orderData.toObject ? orderData.toObject() : orderData;
+        let orderDataObj;
+        try {
+            orderDataObj = orderData.toObject ? orderData.toObject() : orderData;
+            console.log('Chuyển đổi dữ liệu đơn hàng thành công');
+        } catch (conversionError) {
+            console.error('Lỗi khi chuyển đổi dữ liệu đơn hàng:', conversionError);
+            orderDataObj = orderData; // Sử dụng dữ liệu gốc nếu không thể chuyển đổi
+        }
         
         // Chuẩn bị nội dung tin nhắn
         const message = `
@@ -73,7 +90,10 @@ const sendOrderNotification = async (orderData) => {
 `;
 
         // Gửi thông báo
-        console.log('Đang gửi thông báo với nội dung:', message);
+        console.log('Đang gửi thông báo Telegram...');
+        console.log('ChatID:', chatId);
+        console.log('Nội dung tin nhắn:', message);
+        
         await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
         console.log('✅ Đã gửi thông báo Telegram thành công');
         return true;
@@ -112,24 +132,25 @@ exports.getOrder = async (req, res) => {
 
 exports.createOrder = async (req, res) => {
     try {
+        console.log('=== TẠO ĐƠN HÀNG MỚI ===');
         console.log('Đang tạo đơn hàng mới với dữ liệu:', JSON.stringify(req.body));
         const order = new Order(req.body);
         const savedOrder = await order.save();
-        console.log('Đã lưu đơn hàng, bắt đầu gửi thông báo');
+        console.log('Đã lưu đơn hàng thành công, ID:', savedOrder._id);
+        console.log('Đơn hàng đã lưu:', JSON.stringify(savedOrder));
         
-        // Gửi thông báo Telegram
-        setTimeout(async () => {
-            try {
-                const notificationSent = await sendOrderNotification(savedOrder);
-                console.log('Kết quả gửi thông báo:', notificationSent ? 'Thành công' : 'Thất bại');
-            } catch (error) {
-                console.error('Lỗi khi gửi thông báo Telegram (timeout):', error);
-            }
-        }, 500); // Đợi 500ms để đảm bảo đơn hàng đã được lưu hoàn toàn
+        // Gửi thông báo Telegram ngay lập tức thay vì sử dụng setTimeout
+        try {
+            console.log('Bắt đầu gửi thông báo cho đơn hàng mới');
+            const notificationSent = await sendOrderNotification(savedOrder);
+            console.log('Kết quả gửi thông báo:', notificationSent ? 'Thành công ✅' : 'Thất bại ❌');
+        } catch (notificationError) {
+            console.error('❌ Lỗi khi gửi thông báo Telegram:', notificationError);
+        }
 
         res.status(201).json(savedOrder);
     } catch (error) {
-        console.error('Lỗi khi tạo đơn hàng:', error);
+        console.error('❌ Lỗi khi tạo đơn hàng:', error);
         res.status(400).json({ message: error.message });
     }
 };
