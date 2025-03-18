@@ -77,15 +77,24 @@ const sendOrderNotification = async (orderData) => {
         // Chuẩn bị nội dung tin nhắn
         const message = `
 🎂 *ĐƠN HÀNG MỚI*
+━━━━━━━━━━━━━━━
 
 📝 *Mã đơn:* ${orderDataObj.orderId || 'Không có mã'}
+
 🍰 *Loại bánh:* ${orderDataObj.cakeType || 'Không xác định'}
+
 👤 *Khách hàng:* ${orderDataObj.customerName || 'Không xác định'}
+
 📱 *Nguồn:* ${orderDataObj.orderSource || 'Không xác định'}
+
 📝 *Nội dung:* ${orderDataObj.orderNotes || 'Không có'}
-💰 *Tổng tiền:* ${orderDataObj.orderPrice || 0}
-💵 *Tiền cọc:* ${orderDataObj.deposit || 0}
+
+💰 *Tổng tiền:* _${(orderDataObj.orderPrice || 0).toLocaleString('vi-VN')} VNĐ_
+
+💵 *Tiền cọc:* _${(orderDataObj.deposit || 0).toLocaleString('vi-VN')} VNĐ_
+
 📍 *Địa chỉ:* ${orderDataObj.deliveryAddress || 'Không có'}
+
 🕒 *Thời gian giao:* ${orderDataObj.deliveryTime ? new Date(orderDataObj.deliveryTime).toLocaleString('vi-VN') : 'Không xác định'}
 `;
 
