@@ -79,10 +79,12 @@ const sendOrderNotification = async (orderData) => {
             switch(status) {
                 case 'Hủy':
                     return '🔴';
-                case 'Đang giao':
+                case 'Đã giao':
                     return '🟡';
-                default:
+                case 'Đã đặt':
                     return '🟢';
+                default:
+                    return '🟢'; // Mặc định là xanh lá
             }
         };
 
@@ -91,7 +93,7 @@ const sendOrderNotification = async (orderData) => {
 *MÃ ĐƠN HÀNG:* ${orderDataObj.orderId || 'Không có mã'}
 ━━━━━━━━━━━━━━━
 
-${getStatusEmoji(orderDataObj.status)} *Trạng thái:* ${orderDataObj.status || 'Đã đặt'}
+${getStatusEmoji(orderDataObj.orderStatus)} *Trạng thái:* ${orderDataObj.orderStatus || 'Đã đặt'}
 
 🍰 *Loại bánh:* ${orderDataObj.cakeType || 'Không xác định'}
 
