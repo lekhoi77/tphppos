@@ -1,14 +1,28 @@
 const Order = require('../models/Order');
 const TelegramBot = require('node-telegram-bot-api');
 
+// Log environment variables
+console.log('Environment variables:');
+console.log('TELEGRAM_BOT_TOKEN:', process.env.TELEGRAM_BOT_TOKEN);
+console.log('TELEGRAM_CHAT_ID:', process.env.TELEGRAM_CHAT_ID);
+
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const chatId = process.env.TELEGRAM_CHAT_ID;
+
+if (!token || !chatId) {
+    console.error('❌ ERROR: Missing Telegram configuration!');
+    console.error('Token:', token);
+    console.error('ChatID:', chatId);
+}
+
 const bot = new TelegramBot(token, { polling: false });
 
 // Test bot connection
 (async () => {
     try {
         console.log('🤖 Đang test kết nối Telegram bot...');
+        console.log('- Token được sử dụng:', token);
+        console.log('- ChatID được sử dụng:', chatId);
         await bot.sendMessage(chatId, '🔄 Bot đang hoạt động - Test message');
         console.log('✅ Test bot thành công!');
     } catch (error) {
@@ -35,6 +49,8 @@ const sendOrderNotification = async (orderData) => {
 
     try {
         console.log('Đang kết nối với Telegram bot...');
+        console.log('- Token được sử dụng:', token);
+        console.log('- ChatID được sử dụng:', chatId);
         await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
         console.log('✅ Đã gửi thông báo Telegram thành công');
         return true;
@@ -48,6 +64,7 @@ const sendOrderNotification = async (orderData) => {
 // Get all orders with pagination
 exports.getOrders = async (req, res) => {
     try {
+        console.log('Đang lấy danh sách đơn hàng...');
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
@@ -66,6 +83,7 @@ exports.getOrders = async (req, res) => {
             totalOrders: total
         });
     } catch (error) {
+        console.error('❌ Lỗi khi lấy danh sách đơn hàng:', error.message);
         res.status(500).json({ message: error.message });
     }
 };
@@ -73,12 +91,14 @@ exports.getOrders = async (req, res) => {
 // Get single order
 exports.getOrder = async (req, res) => {
     try {
+        console.log('Đang lấy thông tin đơn hàng...');
         const order = await Order.findOne({ orderId: req.params.orderId });
         if (!order) {
             return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
         }
         res.json(order);
     } catch (error) {
+        console.error('❌ Lỗi khi lấy thông tin đơn hàng:', error.message);
         res.status(500).json({ message: error.message });
     }
 };
@@ -86,6 +106,7 @@ exports.getOrder = async (req, res) => {
 // Create new order
 exports.createOrder = async (req, res) => {
     try {
+        console.log('Đang tạo đơn hàng mới...');
         const order = new Order(req.body);
         const savedOrder = await order.save();
         
@@ -108,7 +129,7 @@ exports.createOrder = async (req, res) => {
             telegramNotification: notificationSent ? 'Đã gửi' : 'Thất bại'
         });
     } catch (error) {
-        console.error('Lỗi khi tạo đơn hàng:', error.message);
+        console.error('❌ Lỗi khi tạo đơn hàng:', error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -116,6 +137,7 @@ exports.createOrder = async (req, res) => {
 // Update order
 exports.updateOrder = async (req, res) => {
     try {
+        console.log('Đang cập nhật thông tin đơn hàng...');
         const order = await Order.findOneAndUpdate(
             { orderId: req.params.orderId },
             req.body,
@@ -128,6 +150,7 @@ exports.updateOrder = async (req, res) => {
         
         res.json(order);
     } catch (error) {
+        console.error('❌ Lỗi khi cập nhật thông tin đơn hàng:', error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -135,6 +158,7 @@ exports.updateOrder = async (req, res) => {
 // Delete order
 exports.deleteOrder = async (req, res) => {
     try {
+        console.log('Đang xóa đơn hàng...');
         const order = await Order.findOneAndDelete({ orderId: req.params.orderId });
         
         if (!order) {
@@ -143,6 +167,7 @@ exports.deleteOrder = async (req, res) => {
         
         res.json({ message: 'Đã xóa đơn hàng thành công' });
     } catch (error) {
+        console.error('❌ Lỗi khi xóa đơn hàng:', error.message);
         res.status(500).json({ message: error.message });
     }
 };
@@ -150,6 +175,7 @@ exports.deleteOrder = async (req, res) => {
 // Get orders by status
 exports.getOrdersByStatus = async (req, res) => {
     try {
+        console.log('Đang lấy danh sách đơn hàng theo trạng thái...');
         const { status } = req.params;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -169,6 +195,7 @@ exports.getOrdersByStatus = async (req, res) => {
             totalOrders: total
         });
     } catch (error) {
+        console.error('❌ Lỗi khi lấy danh sách đơn hàng theo trạng thái:', error.message);
         res.status(500).json({ message: error.message });
     }
 };
@@ -176,6 +203,7 @@ exports.getOrdersByStatus = async (req, res) => {
 // Get orders by date range
 exports.getOrdersByDateRange = async (req, res) => {
     try {
+        console.log('Đang lấy danh sách đơn hàng theo khoảng thời gian...');
         const { startDate, endDate } = req.query;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -202,6 +230,7 @@ exports.getOrdersByDateRange = async (req, res) => {
             totalOrders: total
         });
     } catch (error) {
+        console.error('❌ Lỗi khi lấy danh sách đơn hàng theo khoảng thời gian:', error.message);
         res.status(500).json({ message: error.message });
     }
 };
