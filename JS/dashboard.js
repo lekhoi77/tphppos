@@ -273,22 +273,6 @@ function showModalAtPosition() {
     const modal = document.querySelector('.modal-content');
     const modalContainer = document.getElementById('orderModal');
     
-    // Tính toán vị trí cuộn hiện tại của trang
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-    
-    // Tính toán vị trí giữa viewport
-    const viewportHeight = window.innerHeight;
-    const viewportWidth = window.innerWidth;
-    
-    // Đặt modal ở giữa viewport tại vị trí scroll hiện tại
-    const top = scrollTop + (viewportHeight / 2);
-    const left = scrollLeft + (viewportWidth / 2);
-    
-    // Áp dụng vị trí cho modal
-    modal.style.top = `${top}px`;
-    modal.style.left = `${left}px`;
-    
     // Reset form và chuẩn bị cho đơn hàng mới
     orderForm.reset();
     
@@ -301,6 +285,25 @@ function showModalAtPosition() {
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const defaultDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
     document.getElementById('deliveryTime').value = defaultDateTime;
+    
+    // Kiểm tra nếu là thiết bị di động
+    if (window.innerWidth <= 768) {
+        // Trên mobile, không cần định vị modal theo scroll
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.transform = 'none';
+    } else {
+        // Trên desktop, giữ nguyên logic định vị theo scroll
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+        const top = scrollTop + (viewportHeight / 2);
+        const left = scrollLeft + (viewportWidth / 2);
+        modal.style.top = `${top}px`;
+        modal.style.left = `${left}px`;
+        modal.style.transform = 'translate(-50%, -50%)';
+    }
     
     // Hiển thị modal và reset scroll position
     modalContainer.style.display = 'block';
@@ -318,9 +321,7 @@ function hideModal() {
     const modal = document.querySelector('.modal-content');
     
     modalContainer.classList.remove('show');
-    document.body.classList.remove('modal-open');
-    document.body.style.position = '';
-    document.body.style.width = '';
+    modal.style.transform = ''; // Reset transform khi đóng modal
     
     setTimeout(() => {
         modalContainer.style.display = 'none';
@@ -330,11 +331,17 @@ function hideModal() {
 
 function showModal() {
     const modalContainer = document.getElementById('orderModal');
+    const modal = document.querySelector('.modal-content');
+    
+    // Kiểm tra nếu là thiết bị di động
+    if (window.innerWidth <= 768) {
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.transform = 'none';
+    }
+    
     modalContainer.classList.add('show');
     modalContainer.style.display = 'block';
-    document.body.classList.add('modal-open');
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
 }
 
 // Helper functions
