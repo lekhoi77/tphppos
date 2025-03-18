@@ -2,7 +2,7 @@ const Order = require('../models/Order');
 const TelegramBot = require('node-telegram-bot-api');
 
 const token = '7255950953:AAEqjvhAPS7TTHDu0OgkrDih5Vx8hJ5Mcn0';
-const chatId = '1002606332405';
+const chatId = '-1002606332405';
 const bot = new TelegramBot(token, { polling: false });
 
 // Test bot connection
