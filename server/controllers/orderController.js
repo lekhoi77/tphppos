@@ -6,6 +6,7 @@ const chatId = '1002606332405';
 const bot = new TelegramBot(token, { polling: false });
 
 const sendOrderNotification = async (orderData) => {
+    console.log('Bắt đầu gửi thông báo Telegram cho đơn hàng:', orderData.orderID);
     const message = `
 🎂 *ĐƠN HÀNG MỚI*
 
@@ -21,10 +22,14 @@ const sendOrderNotification = async (orderData) => {
 `;
 
     try {
+        console.log('Đang kết nối với Telegram bot...');
         await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
-        console.log('Telegram notification sent successfully');
+        console.log('✅ Đã gửi thông báo Telegram thành công');
+        return true;
     } catch (error) {
-        console.error('Error sending Telegram notification:', error);
+        console.error('❌ Lỗi khi gửi thông báo Telegram:', error.message);
+        console.error('Chi tiết lỗi:', error);
+        return false;
     }
 };
 
@@ -72,8 +77,9 @@ exports.createOrder = async (req, res) => {
         const order = new Order(req.body);
         const savedOrder = await order.save();
         
+        console.log('Đơn hàng đã được lưu, bắt đầu gửi thông báo...');
         // Send Telegram notification
-        await sendOrderNotification({
+        const notificationSent = await sendOrderNotification({
             orderID: savedOrder.orderId,
             cakeType: savedOrder.cakeType,
             customerName: savedOrder.customerName,
@@ -85,8 +91,12 @@ exports.createOrder = async (req, res) => {
             deliveryTime: savedOrder.deliveryTime
         });
 
-        res.status(201).json(savedOrder);
+        res.status(201).json({
+            ...savedOrder.toJSON(),
+            telegramNotification: notificationSent ? 'Đã gửi' : 'Thất bại'
+        });
     } catch (error) {
+        console.error('Lỗi khi tạo đơn hàng:', error.message);
         res.status(400).json({ message: error.message });
     }
 };
