@@ -74,12 +74,24 @@ const sendOrderNotification = async (orderData) => {
             orderDataObj = orderData; // Sử dụng dữ liệu gốc nếu không thể chuyển đổi
         }
         
+        // Xác định trạng thái và màu sắc tương ứng
+        const getStatusEmoji = (status) => {
+            switch(status) {
+                case 'Hủy':
+                    return '🔴';
+                case 'Đang giao':
+                    return '🟡';
+                default:
+                    return '🟢';
+            }
+        };
+
         // Chuẩn bị nội dung tin nhắn
         const message = `
 *MÃ ĐƠN HÀNG:* ${orderDataObj.orderId || 'Không có mã'}
 ━━━━━━━━━━━━━━━
 
-${orderDataObj.status === 'Hủy' ? '🔴' : orderDataObj.status === 'Đang giao' ? '🟡' : '🟢'} *Trạng thái:* ${orderDataObj.status ? orderDataObj.status : 'Đã đặt'}
+${getStatusEmoji(orderDataObj.status)} *Trạng thái:* ${orderDataObj.status || 'Đã đặt'}
 
 🍰 *Loại bánh:* ${orderDataObj.cakeType || 'Không xác định'}
 
