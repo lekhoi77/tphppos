@@ -76,10 +76,10 @@ const sendOrderNotification = async (orderData) => {
         
         // Chuẩn bị nội dung tin nhắn
         const message = `
-🎂 *ĐƠN HÀNG MỚI*
+#${orderDataObj.orderId || 'Không có mã'}
 ━━━━━━━━━━━━━━━
 
-📝 *Mã đơn:* ${orderDataObj.orderId || 'Không có mã'}
+🔵 *Trạng thái:* ${orderDataObj.status || 'Đã đặt'}
 
 🍰 *Loại bánh:* ${orderDataObj.cakeType || 'Không xác định'}
 
@@ -92,6 +92,7 @@ const sendOrderNotification = async (orderData) => {
 💰 *Tổng tiền:* _${(orderDataObj.orderPrice || 0).toLocaleString('vi-VN')} VNĐ_
 
 💵 *Tiền cọc:* _${(orderDataObj.deposit || 0).toLocaleString('vi-VN')} VNĐ_
+
 
 📍 *Địa chỉ:* ${orderDataObj.deliveryAddress || 'Không có'}
 
