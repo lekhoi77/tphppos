@@ -79,7 +79,7 @@ const sendOrderNotification = async (orderData) => {
 *MÃ ĐƠN HÀNG:* ${orderDataObj.orderId || 'Không có mã'}
 ━━━━━━━━━━━━━━━
 
-${orderDataObj.status === 'Đã hủy' ? '🔴' : orderDataObj.status === 'Đang giao' ? '🟡' : '🟢'} *Trạng thái:* ${orderDataObj.status || 'Đã đặt'}
+${orderDataObj.status === 'Hủy' ? '🔴' : orderDataObj.status === 'Đang giao' ? '🟡' : '🟢'} *Trạng thái:* ${orderDataObj.status || 'Đã đặt'}
 
 🍰 *Loại bánh:* ${orderDataObj.cakeType || 'Không xác định'}
 
