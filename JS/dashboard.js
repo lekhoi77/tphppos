@@ -339,19 +339,61 @@ function showModal() {
 
 // Helper functions
 function showError(message) {
+    // Remove any existing error messages to prevent stacking
+    const existingErrors = document.querySelectorAll('.error-message');
+    existingErrors.forEach(el => el.remove());
+    
     const errorDiv = document.createElement('div');
     errorDiv.className = 'error-message';
     errorDiv.textContent = message;
+    
+    // Tính toán vị trí dựa trên scroll hiện tại
+    const scrollY = window.scrollY || window.pageYOffset;
+    const viewportHeight = window.innerHeight;
+    const scrollCenter = scrollY + (viewportHeight / 2);
+    
+    // Đặt vị trí thông báo
+    errorDiv.style.position = 'absolute';
+    errorDiv.style.top = `${scrollCenter}px`;
+    errorDiv.style.left = '50%';
+    errorDiv.style.transform = 'translate(-50%, -50%)';
+    
     document.body.appendChild(errorDiv);
-    setTimeout(() => errorDiv.remove(), 3000);
+    
+    // Set a longer timeout for visibility
+    setTimeout(() => {
+        errorDiv.style.animation = 'fadeOut 0.5s forwards';
+        setTimeout(() => errorDiv.remove(), 500);
+    }, 3000);
 }
 
 function showSuccess(message) {
+    // Remove any existing success messages to prevent stacking
+    const existingSuccess = document.querySelectorAll('.success-message');
+    existingSuccess.forEach(el => el.remove());
+    
     const successDiv = document.createElement('div');
     successDiv.className = 'success-message';
     successDiv.textContent = message;
+    
+    // Tính toán vị trí dựa trên scroll hiện tại
+    const scrollY = window.scrollY || window.pageYOffset;
+    const viewportHeight = window.innerHeight;
+    const scrollCenter = scrollY + (viewportHeight / 2);
+    
+    // Đặt vị trí thông báo
+    successDiv.style.position = 'absolute';
+    successDiv.style.top = `${scrollCenter}px`;
+    successDiv.style.left = '50%';
+    successDiv.style.transform = 'translate(-50%, -50%)';
+    
     document.body.appendChild(successDiv);
-    setTimeout(() => successDiv.remove(), 3000);
+    
+    // Set a longer timeout for visibility
+    setTimeout(() => {
+        successDiv.style.animation = 'fadeOut 0.5s forwards';
+        setTimeout(() => successDiv.remove(), 500);
+    }, 3000);
 }
 
 function formatPrice(price) {
