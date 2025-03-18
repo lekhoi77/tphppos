@@ -454,10 +454,10 @@ async function editOrder(mongoId) {
             };
 
             try {
-                console.log('Updating order with MongoDB ID:', mongoId);
+                console.log('Updating order with orderId:', orderData.orderId);
                 console.log('Update data:', formData);
                 
-                await orderAPI.updateOrder(mongoId, formData);
+                await orderAPI.updateOrder(orderData.orderId, formData);
                 
                 const updatedOrders = await orderAPI.getOrders();
                 orders = updatedOrders;

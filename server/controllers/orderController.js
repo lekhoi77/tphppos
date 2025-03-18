@@ -181,14 +181,38 @@ exports.createOrder = async (req, res) => {
 
 exports.updateOrder = async (req, res) => {
     try {
+        console.log('=== CẬP NHẬT ĐƠN HÀNG ===');
+        console.log('OrderID đang cập nhật:', req.params.orderId);
+        console.log('Dữ liệu cập nhật:', JSON.stringify(req.body));
+        
+        // Kiểm tra xem đơn hàng có tồn tại không khi cập nhật
+        const orderExists = await Order.findOne({ orderId: req.params.orderId });
+        if (!orderExists) {
+            console.error('❌ Không tìm thấy đơn hàng:', req.params.orderId);
+            return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
+        }
+        
+        console.log('✅ Đã tìm thấy đơn hàng, tiến hành cập nhật');
         const order = await Order.findOneAndUpdate(
             { orderId: req.params.orderId },
             req.body,
             { new: true, runValidators: true }
         );
-        if (!order) return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
+        
+        console.log('✅ Đã cập nhật đơn hàng thành công:', order);
+        
+        // Gửi thông báo Telegram sau khi cập nhật đơn hàng thành công
+        try {
+            console.log('Bắt đầu gửi thông báo cho đơn hàng đã cập nhật');
+            const notificationSent = await sendOrderNotification(order);
+            console.log('Kết quả gửi thông báo:', notificationSent ? 'Thành công ✅' : 'Thất bại ❌');
+        } catch (notificationError) {
+            console.error('❌ Lỗi khi gửi thông báo Telegram:', notificationError);
+        }
+        
         res.json(order);
     } catch (error) {
+        console.error('❌ Lỗi khi cập nhật đơn hàng:', error);
         res.status(400).json({ message: error.message });
     }
 };
