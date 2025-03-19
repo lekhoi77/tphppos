@@ -96,18 +96,68 @@ const orderAPI = {
     // Update an existing order
     async updateOrder(orderId, orderData) {
         try {
+            // Validate order status
+            const validStatuses = ['Đã đặt', 'Đã giao', 'Hủy'];
+            if (!validStatuses.includes(orderData.orderStatus)) {
+                throw new Error('Trạng thái đơn hàng không hợp lệ');
+            }
+
             console.log(`Updating order ${orderId} with data:`, orderData);
-            const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(orderData),
+            
+            // Lọc và định dạng dữ liệu để gửi đi
+            const formattedData = {
+                // Chỉ bao gồm các trường cần thiết
+                cakeType: orderData.cakeType,
+                customerName: orderData.customerName,
+                orderSource: orderData.orderSource,
+                orderNotes: orderData.orderNotes,
+                orderPrice: Number(orderData.orderPrice),
+                deposit: Number(orderData.deposit || 0),
+                orderStatus: orderData.orderStatus,
+                deliveryAddress: orderData.deliveryAddress,
+                deliveryTime: orderData.deliveryTime
+            };
+
+            // Sử dụng XMLHttpRequest thay vì fetch
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('PUT', `${API_BASE_URL}/orders/${orderId}`);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.setRequestHeader('Accept', 'application/json');
+                
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            // Kiểm tra nội dung phản hồi là HTML thay vì JSON
+                            const text = xhr.responseText;
+                            if (text.trim().startsWith('<!DOCTYPE html>') || text.trim().startsWith('<html>')) {
+                                console.error('Received HTML instead of JSON');
+                                reject(new Error(`Lỗi máy chủ: ${xhr.status}`));
+                                return;
+                            }
+                            
+                            const data = JSON.parse(text);
+                            console.log('Updated order:', data);
+                            resolve(data);
+                        } catch (e) {
+                            console.error('Error parsing response:', e);
+                            reject(new Error('Lỗi khi xử lý phản hồi từ máy chủ'));
+                        }
+                    } else {
+                        console.error('Server error:', xhr.status, xhr.responseText);
+                        reject(new Error(`Lỗi máy chủ: ${xhr.status}`));
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    console.error('Network error');
+                    reject(new Error('Lỗi kết nối mạng'));
+                };
+                
+                // In dữ liệu gửi đi để debug
+                console.log('Sending data:', JSON.stringify(formattedData));
+                xhr.send(JSON.stringify(formattedData));
             });
-            const data = await handleResponse(response);
-            console.log('Updated order:', data);
-            return data;
         } catch (error) {
             console.error('Error updating order:', error);
             throw error;
@@ -153,13 +203,60 @@ const orderAPI = {
     // Lấy đơn hàng theo ID
     async getOrder(orderId) {
         try {
+            if (!orderId) {
+                throw new Error('Cần cung cấp mã đơn hàng');
+            }
+            
             console.log(`Fetching order ${orderId}`);
-            const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
-                headers: {
-                    'Accept': 'application/json'
-                }
+            
+            // Sử dụng XMLHttpRequest thay vì fetch để xử lý lỗi tốt hơn
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', `${API_BASE_URL}/orders/${orderId}`);
+                xhr.setRequestHeader('Accept', 'application/json');
+                
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const text = xhr.responseText;
+                            
+                            // Kiểm tra nội dung phản hồi là HTML thay vì JSON
+                            if (text.trim().startsWith('<!DOCTYPE html>') || text.trim().startsWith('<html>')) {
+                                console.error('Received HTML instead of JSON');
+                                reject(new Error(`Lỗi máy chủ: ${xhr.status}`));
+                                return;
+                            }
+                            
+                            const data = JSON.parse(text);
+                            console.log('Fetched order:', data);
+                            
+                            // Đảm bảo trạng thái đơn hàng hợp lệ
+                            if (data && data.orderStatus) {
+                                const validStatuses = ['Đã đặt', 'Đã giao', 'Hủy'];
+                                if (!validStatuses.includes(data.orderStatus)) {
+                                    console.warn('Invalid order status:', data.orderStatus);
+                                    data.orderStatus = 'Đã đặt'; // Mặc định là Đã đặt (xanh lá)
+                                }
+                            }
+                            
+                            resolve(data);
+                        } catch (e) {
+                            console.error('Error parsing response:', e);
+                            reject(new Error('Lỗi khi xử lý phản hồi từ máy chủ'));
+                        }
+                    } else {
+                        console.error('Server error:', xhr.status, xhr.responseText);
+                        reject(new Error(`Lỗi máy chủ: ${xhr.status}`));
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    console.error('Network error');
+                    reject(new Error('Lỗi kết nối mạng'));
+                };
+                
+                xhr.send();
             });
-            return handleResponse(response);
         } catch (error) {
             console.error('Error fetching order:', error);
             throw error;

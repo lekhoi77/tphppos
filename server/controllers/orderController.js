@@ -103,10 +103,10 @@ ${getStatusEmoji(orderDataObj.orderStatus)} *Trạng thái:* ${orderDataObj.orde
 
 📝 *Nội dung:* ${orderDataObj.orderNotes || 'Không có'}
 
+
 💰 *Tổng tiền:* _${(orderDataObj.orderPrice || 0).toLocaleString('vi-VN')} VNĐ_
 
 💵 *Tiền cọc:* _${(orderDataObj.deposit || 0).toLocaleString('vi-VN')} VNĐ_
-
 
 📍 *Địa chỉ:* ${orderDataObj.deliveryAddress || 'Không có'}
 
@@ -181,39 +181,85 @@ exports.createOrder = async (req, res) => {
 
 exports.updateOrder = async (req, res) => {
     try {
-        console.log('=== CẬP NHẬT ĐƠN HÀNG ===');
-        console.log('OrderID đang cập nhật:', req.params.orderId);
-        console.log('Dữ liệu cập nhật:', JSON.stringify(req.body));
-        
-        // Kiểm tra xem đơn hàng có tồn tại không khi cập nhật
+        console.log('📝 Gửi API cập nhật với dữ liệu:', req.body);
+        console.log('📝 Order ID từ URL:', req.params.orderId);
+
+        // Kiểm tra orderId
+        if (!req.params.orderId || req.params.orderId === ':/pin>') {
+            console.error('❌ orderId không hợp lệ:', req.params.orderId);
+            return res.status(400).json({ message: 'Mã đơn hàng không hợp lệ' });
+        }
+
+        // Kiểm tra xem dữ liệu cập nhật có hợp lệ không
+        if (!req.body || Object.keys(req.body).length === 0) {
+            console.error('❌ Dữ liệu cập nhật không hợp lệ');
+            return res.status(400).json({ message: 'Dữ liệu cập nhật không hợp lệ' });
+        }
+
+        // Kiểm tra trạng thái hợp lệ
+        const validStatuses = ['Đã đặt', 'Đã giao', 'Hủy'];
+        if (req.body.orderStatus && !validStatuses.includes(req.body.orderStatus)) {
+            console.error('❌ Trạng thái đơn hàng không hợp lệ:', req.body.orderStatus);
+            return res.status(400).json({ message: 'Trạng thái đơn hàng không hợp lệ' });
+        }
+
+        // Đảm bảo dữ liệu số là số
+        if (req.body.orderPrice) {
+            req.body.orderPrice = Number(req.body.orderPrice);
+        }
+        if (req.body.deposit) {
+            req.body.deposit = Number(req.body.deposit);
+        }
+
+        // Kiểm tra xem đơn hàng có tồn tại không
         const orderExists = await Order.findOne({ orderId: req.params.orderId });
         if (!orderExists) {
             console.error('❌ Không tìm thấy đơn hàng:', req.params.orderId);
             return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
         }
-        
+
         console.log('✅ Đã tìm thấy đơn hàng, tiến hành cập nhật');
+        
+        // Lọc dữ liệu cập nhật chỉ cho phép các trường hợp hợp lệ
+        const updateData = {};
+        const validFields = ['cakeType', 'customerName', 'orderSource', 'orderNotes', 'orderPrice', 'deposit', 'orderStatus', 'deliveryAddress', 'deliveryTime'];
+        
+        validFields.forEach(field => {
+            if (req.body[field] !== undefined) {
+                updateData[field] = req.body[field];
+            }
+        });
+        
+        console.log('Data after filtering:', updateData);
+        
         const order = await Order.findOneAndUpdate(
             { orderId: req.params.orderId },
-            req.body,
+            updateData,
             { new: true, runValidators: true }
         );
-        
-        console.log('✅ Đã cập nhật đơn hàng thành công:', order);
-        
-        // Gửi thông báo Telegram sau khi cập nhật đơn hàng thành công
+
+        if (!order) {
+            console.error('❌ Lỗi khi cập nhật đơn hàng');
+            return res.status(500).json({ message: 'Lỗi khi cập nhật đơn hàng' });
+        }
+
+        console.log('✅ Cập nhật đơn hàng thành công');
+        console.log('Dữ liệu sau khi cập nhật:', JSON.stringify(order));
+
+        // Gửi thông báo qua Telegram
         try {
             console.log('Bắt đầu gửi thông báo cho đơn hàng đã cập nhật');
             const notificationSent = await sendOrderNotification(order);
             console.log('Kết quả gửi thông báo:', notificationSent ? 'Thành công ✅' : 'Thất bại ❌');
         } catch (notificationError) {
             console.error('❌ Lỗi khi gửi thông báo Telegram:', notificationError);
+            // Không throw error ở đây để không ảnh hưởng đến response API
         }
-        
+
         res.json(order);
     } catch (error) {
-        console.error('❌ Lỗi khi cập nhật đơn hàng:', error);
-        res.status(400).json({ message: error.message });
+        console.error('❌ Lỗi trong quá trình cập nhật:', error);
+        res.status(500).json({ message: 'Lỗi server khi cập nhật đơn hàng', error: error.message });
     }
 };
 

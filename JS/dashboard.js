@@ -439,17 +439,32 @@ async function editOrder(mongoId) {
     try {
         console.log('Editing order with MongoDB ID:', mongoId);
         
-        // Tìm đơn hàng trong danh sách orders hiện tại
-        const orderData = orders.find(order => order._id === mongoId);
-        console.log('Order data found:', orderData);
-
-        if (!orderData) {
-            console.error('Order not found with MongoDB ID:', mongoId);
-            throw new Error('Không tìm thấy thông tin đơn hàng');
+        // Lấy thông tin đơn hàng trực tiếp từ API thay vì dùng danh sách cục bộ
+        let orderData;
+        try {
+            // Tìm trong danh sách orders cục bộ trước
+            const localOrder = orders.find(order => order._id === mongoId);
+            console.log('Local order data:', localOrder);
+            
+            if (localOrder && localOrder.orderId) {
+                // Sử dụng API để lấy dữ liệu đơn hàng mới nhất từ máy chủ
+                orderData = await orderAPI.getOrder(localOrder.orderId);
+                console.log('Order data from API:', orderData);
+                
+                // Đảm bảo orderData có dữ liệu hợp lệ
+                if (!orderData || !orderData.orderId || orderData.orderId === ':/pin>') {
+                    throw new Error('Dữ liệu đơn hàng không hợp lệ');
+                }
+            } else {
+                throw new Error('Không tìm thấy mã đơn hàng');
+            }
+        } catch (fetchError) {
+            console.error('Error fetching order details:', fetchError);
+            throw new Error('Không thể lấy thông tin đơn hàng từ máy chủ');
         }
 
         // Update modal title and button first
-        document.querySelector('.popup-title').textContent = 'SỬA ĐƠN HÀNG';
+        document.querySelector('.popup-title').textContent = 'Sửa ĐƠN HÀNG';
         const submitButton = orderForm.querySelector('button[type="submit"]');
         submitButton.textContent = 'Cập nhật';
 
@@ -489,33 +504,60 @@ async function editOrder(mongoId) {
         // Update form submit handler
         orderForm.onsubmit = async (e) => {
             e.preventDefault();
-            const formData = {
-                orderId: orderData.orderId,
-                cakeType: document.getElementById('cakeType').value,
-                customerName: document.getElementById('customerName').value,
-                orderSource: document.getElementById('orderSource').value,
-                orderNotes: document.getElementById('orderNotes').value,
-                orderPrice: parseFloat(document.getElementById('orderPrice').value.replace(/[,.]/g, '')),
-                deposit: parseFloat(document.getElementById('deposit').value.replace(/[,.]/g, '')) || 0,
-                orderStatus: document.getElementById('orderStatus').value,
-                deliveryAddress: document.getElementById('deliveryAddress').value,
-                deliveryTime: document.getElementById('deliveryTime').value
-            };
-
+            
+            // Hiện trạng thái đang xử lý
+            const submitBtn = orderForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Đang xử lý...';
+            submitBtn.disabled = true;
+            
             try {
+                const formData = {
+                    orderId: orderData.orderId, // Sử dụng orderId từ dữ liệu lấy về
+                    _id: orderData._id, // Thêm MongoDB ID để cập nhật đúng đơn hàng
+                    cakeType: document.getElementById('cakeType').value,
+                    customerName: document.getElementById('customerName').value,
+                    orderSource: document.getElementById('orderSource').value,
+                    orderNotes: document.getElementById('orderNotes').value,
+                    orderPrice: parseFloat(document.getElementById('orderPrice').value.replace(/[,.]/g, '')),
+                    deposit: parseFloat(document.getElementById('deposit').value.replace(/[,.]/g, '')) || 0,
+                    orderStatus: document.getElementById('orderStatus').value,
+                    deliveryAddress: document.getElementById('deliveryAddress').value,
+                    deliveryTime: document.getElementById('deliveryTime').value
+                };
+
                 console.log('Updating order with orderId:', orderData.orderId);
                 console.log('Update data:', formData);
                 
+                // Kiểm tra trạng thái hợp lệ
+                const validStatuses = ['Đã đặt', 'Đã giao', 'Hủy'];
+                if (!validStatuses.includes(formData.orderStatus)) {
+                    throw new Error('Trạng thái đơn hàng không hợp lệ');
+                }
+                
+                // Đảm bảo orderId được cập nhật đúng khi gửi API
+                if (!orderData.orderId || orderData.orderId === ':/pin>') {
+                    throw new Error('Mã đơn hàng không hợp lệ');
+                }
+                
                 await orderAPI.updateOrder(orderData.orderId, formData);
                 
+                // Lấy lại danh sách đơn hàng mới
                 const updatedOrders = await orderAPI.getOrders();
                 orders = updatedOrders;
-                    displayOrders(orders);
+                displayOrders(orders);
                 hideModal();
                 showSuccess('Đã cập nhật đơn hàng thành công!');
             } catch (error) {
                 console.error('Error updating order:', error);
-                showError('Không thể cập nhật đơn hàng');
+                
+                // Khôi phục nút submit
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                
+                // Hiện lỗi cụ thể
+                const errorMessage = error.message || 'Không thể cập nhật đơn hàng';
+                showError(errorMessage);
             }
         };
     } catch (error) {
