@@ -42,7 +42,16 @@ body::before {
     margin: 60px auto 20px; /* Thêm margin-top để tránh che phủ nút */
     z-index: 2;
 }
+.logo-container {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically if needed */
+}
 
+.logo {
+    width: 150px; /* Adjust width as needed */
+    height: auto; /* Maintain aspect ratio */
+}
 .info {
     position: relative;
     display: flex;
@@ -672,7 +681,10 @@ body.modal-open {
     .container {
         padding: 20px 15px;
     }
-    
+    .logo {
+        width: 100px; /* Adjust width as needed */
+        height: auto; /* Maintain aspect ratio */
+    }
     tr {
         margin-bottom: 25px;
         background: #ffffff;
@@ -783,7 +795,10 @@ body.modal-open {
     .container {
         padding: 10px 5px;
     }
-    
+    .logo {
+        width: 100px; /* Adjust width as needed */
+        height: auto; /* Maintain aspect ratio */
+    }
     tr {
         margin-bottom: 15px;
         background: #ffffff;
